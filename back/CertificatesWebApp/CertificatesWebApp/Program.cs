@@ -29,6 +29,7 @@ builder.Services.AddTransient<ICertificateService, CertificateService>();
 builder.Services.AddTransient<ICertificateRequestService, CertificateRequestService>();
 builder.Services.AddTransient<IConfirmationService, ConfirmationService>();
 builder.Services.AddTransient<ICredentialsService, CredentialsService>();
+builder.Services.AddTransient<ISendGridService, SendGridService>();
 builder.Services.AddTransient<IUserService, UserService>();
 
 builder.Services.AddCors(feature =>

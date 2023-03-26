@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Data.Models
 {
     [Table("requests")]
-    public class CertificateRequest
+    public class CertificateRequest : IBaseEntity
     {
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

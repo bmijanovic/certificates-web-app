@@ -1,4 +1,4 @@
-﻿using CertificatesWebApp.Interfaces;
+﻿using CertificatesWebApp.Infrastructure;
 using Data.Context;
 using Data.Models;
 
@@ -8,13 +8,11 @@ namespace CertificatesWebApp.Users.Repositories
     {
 
     }
-    public class ConfirmationRepository : IConfirmationRepository
+    public class ConfirmationRepository : Repository<Confirmation>, IConfirmationRepository
     {
-        private readonly CertificatesWebAppContext _certificatesWebAppContext;
-
-        public ConfirmationRepository(CertificatesWebAppContext certificatesWebAppContext)
+        public ConfirmationRepository(CertificatesWebAppContext certificatesWebAppContext) : base(certificatesWebAppContext)
         {
-            _certificatesWebAppContext = certificatesWebAppContext;
+
         }
     }
 }

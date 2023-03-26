@@ -1,4 +1,4 @@
-﻿using CertificatesWebApp.Interfaces;
+﻿using CertificatesWebApp.Infrastructure;
 using Data.Context;
 using Data.Models;
 
@@ -8,13 +8,11 @@ namespace CertificatesWebApp.Certificates.Repositories
     {
 
     }
-    public class CertificateRepository : ICertificateRepository
+    public class CertificateRepository : Repository<Certificate>, ICertificateRepository
     {
-        private readonly CertificatesWebAppContext _certificatesWebAppContext;
-
-        public CertificateRepository(CertificatesWebAppContext certificatesWebAppContext)
+        public CertificateRepository(CertificatesWebAppContext certificatesWebAppContext) : base(certificatesWebAppContext)
         {
-            _certificatesWebAppContext = certificatesWebAppContext;
+
         }
     }
 }

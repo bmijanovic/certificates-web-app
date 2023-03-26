@@ -1,6 +1,6 @@
-﻿using CertificatesWebApp.Interfaces;
-using CertificatesWebApp.Users.Repositories;
+﻿using CertificatesWebApp.Users.Repositories;
 using Data.Models;
+using CertificatesWebApp.Infrastructure;
 
 namespace CertificatesWebApp.Users.Services
 {

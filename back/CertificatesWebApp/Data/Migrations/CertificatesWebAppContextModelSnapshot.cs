@@ -112,12 +112,11 @@ namespace Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("confirmation_type");
 
-                    b.Property<string>("ExpirationDate")
-                        .IsRequired()
+                    b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("expiration_date");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -134,13 +133,7 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("id");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("email");
-
-                    b.Property<string>("ExpiratonDate")
-                        .IsRequired()
+                    b.Property<DateTime>("ExpiratonDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("expiration_date");
 
@@ -224,9 +217,13 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.Confirmation", b =>
                 {
-                    b.HasOne("Data.Models.User", null)
-                        .WithMany("Conformations")
-                        .HasForeignKey("UserId");
+                    b.HasOne("Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Data.Models.Credentials", b =>
@@ -252,8 +249,6 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Models.User", b =>
                 {
                     b.Navigation("Certificates");
-
-                    b.Navigation("Conformations");
                 });
 #pragma warning restore 612, 618
         }

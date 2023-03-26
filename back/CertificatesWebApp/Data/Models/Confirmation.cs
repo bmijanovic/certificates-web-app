@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Data.Models
 {
     [Table("activations")]
-    public class Confirmation
+    public class Confirmation : IBaseEntity
     {
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,10 +18,13 @@ namespace Data.Models
         public String Code { get; set; }
 
         [Column("expiration_date")]
-        public String ExpirationDate { get; set; }
+        public DateTime ExpirationDate { get; set; }
 
         [Column("confirmation_type")]
         public ConfirmationType ConfirmationType { get; set; }
+
+        [Column("user_id")]
+        public User User { get; set; }
 
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Data.Models
 {
     [Table("users")]
-    public class User
+    public class User : IBaseEntity
     {
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -28,8 +28,6 @@ namespace Data.Models
 
         [Column("activated")]
         public Boolean IsActivated { get; set; }
-
-        public List<Confirmation> Conformations { get; set; }
         public List<Certificate> Certificates { get; set; }
 
     }
