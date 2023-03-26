@@ -1,7 +1,9 @@
-﻿using CertificatesWebApp.Users.Dtos;
+﻿using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Mvc;
+using SendGrid.Helpers.Mail;
 using System.Net;
 
 namespace CertificatesWebApp.Users.Controllers
@@ -11,23 +13,46 @@ namespace CertificatesWebApp.Users.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly ICredentialsService _credentialsService;
+        public UserController(IUserService userService, ICredentialsService credentialsService)
         {
+            _credentialsService = credentialsService;
             _userService = userService;
         }
 
         [HttpPost(Name = "Register")]
-        public IActionResult register(UserDTO userDTO)
+        public ActionResult<UserDTO> register(UserDTO userDTO)
         {
-            User user = _userService.createUser(userDTO);
-            return Ok(new UserDTO(user));
+            try
+            {
+                User user = _userService.CreateUser(userDTO);
+                return Ok(new UserDTO(user));
+            }
+            catch (EmailException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (TelephoneException e) 
+            {
+                return BadRequest(e.Message);
+            }
         }
 
-        [HttpGet(Name = "Login")]
-        public IActionResult login(UserDTO userDTO)
+        [HttpPost(Name = "Login")]
+        public ActionResult<String> login(CredentialsDTO credentialsDTO)
         {
-
-            return Ok("Logged in");
+            try
+            {
+                _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
+                return Ok("Logged in successfully!");
+            }
+            catch (BadCredentialsException e) {
+                return BadRequest(e.Message);
+            }
+            catch (UserNotActivatedException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

@@ -1,7 +1,9 @@
 using CertificatesWebApp.Certificates.Repositories;
+using CertificatesWebApp.Exceptions;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,8 +47,6 @@ builder.Services.AddCors(feature =>
                                 ));
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

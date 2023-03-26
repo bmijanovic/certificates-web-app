@@ -6,7 +6,7 @@ namespace CertificatesWebApp.Users.Services
 {
     public interface IConfirmationService : IService<Confirmation>
     {
-        Confirmation createConfirmation(Confirmation confirmation);
+        Confirmation CreateConfirmation(Confirmation confirmation);
     }
     public class ConfirmationService : IConfirmationService
     {
@@ -17,7 +17,7 @@ namespace CertificatesWebApp.Users.Services
             _confirmationRepository = confirmationRepository;
         }
 
-        public Confirmation createConfirmation(Confirmation confirmation) { 
+        public Confirmation CreateConfirmation(Confirmation confirmation) { 
             return _confirmationRepository.Create(confirmation);
         }
     }
