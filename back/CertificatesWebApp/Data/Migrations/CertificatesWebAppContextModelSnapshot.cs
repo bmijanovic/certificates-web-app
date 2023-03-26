@@ -123,7 +123,7 @@ namespace Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("activations");
+                    b.ToTable("confirmations");
                 });
 
             modelBuilder.Entity("Data.Models.Credentials", b =>

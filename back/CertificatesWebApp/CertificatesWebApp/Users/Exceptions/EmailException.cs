@@ -1,4 +1,4 @@
-﻿namespace CertificatesWebApp.Exceptions
+﻿namespace CertificatesWebApp.Users.Exceptions
 {
     public class EmailException : Exception
     {

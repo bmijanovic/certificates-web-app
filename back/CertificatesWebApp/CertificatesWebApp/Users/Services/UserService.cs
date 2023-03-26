@@ -1,6 +1,6 @@
-﻿using CertificatesWebApp.Exceptions;
-using CertificatesWebApp.Infrastructure;
+﻿using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
+using CertificatesWebApp.Users.Exceptions;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
 
@@ -9,21 +9,22 @@ namespace CertificatesWebApp.Users.Services
     public interface IUserService : IService<User>
     {
         User CreateUser(UserDTO userDTO);
+        User UpdateUser(User user);
     }
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IConfirmationRepository _confirmationRepository;
         private readonly ICredentialsService _credentialsService;
-        private readonly IConfirmationService _confirmationService;
-        private readonly ISendGridService _sendGridService;
+        private readonly IMailService _mailService;
 
-        public UserService(IUserRepository userRepository, ICredentialsService credentialsService, 
-            IConfirmationService confirmationService, ISendGridService sendGridService)
+        public UserService(IUserRepository userRepository, ICredentialsService credentialsService,
+            IConfirmationRepository confirmationRepository, IMailService mailService)
         {
             _userRepository = userRepository;
+            _confirmationRepository = confirmationRepository;
             _credentialsService = credentialsService;
-            _confirmationService = confirmationService;
-            _sendGridService = sendGridService;
+            _mailService = mailService;
         }
 
         public User CreateUser(UserDTO userDTO)
@@ -47,10 +48,10 @@ namespace CertificatesWebApp.Users.Services
 
             Confirmation confirmation = new Confirmation();
             confirmation.ConfirmationType = ConfirmationType.ACTIVATION;
-            confirmation.Code = new Random().Next(0, 1000000).ToString("D6");
+            confirmation.Code = Math.Abs(user.Email.GetHashCode() + DateTime.Now.GetHashCode()).ToString();
             confirmation.ExpirationDate = DateTime.Now.AddDays(1);
             confirmation.User = user;
-            _confirmationService.CreateConfirmation(confirmation);
+            _confirmationRepository.Create(confirmation);
 
             Credentials credentials = new Credentials();
             credentials.Password = userDTO.Password;
@@ -58,9 +59,13 @@ namespace CertificatesWebApp.Users.Services
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
             _credentialsService.CreateCredentials(credentials);
 
-            //_sendGridService.sendActivationMailAsync();
+            _mailService.SendActivationMail(user, confirmation.Code);
 
             return user;
+        }
+
+        public User UpdateUser(User user) { 
+            return _userRepository.Update(user);
         }
     }
 }

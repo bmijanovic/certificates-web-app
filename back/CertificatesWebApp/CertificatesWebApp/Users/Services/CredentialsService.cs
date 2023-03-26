@@ -1,8 +1,7 @@
 ﻿using CertificatesWebApp.Users.Repositories;
 using Data.Models;
 using CertificatesWebApp.Infrastructure;
-using CertificatesWebApp.Users.Dtos;
-using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Users.Exceptions;
 
 namespace CertificatesWebApp.Users.Services
 {

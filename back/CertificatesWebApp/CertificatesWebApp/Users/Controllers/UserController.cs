@@ -1,5 +1,5 @@
-﻿using CertificatesWebApp.Exceptions;
-using CertificatesWebApp.Users.Dtos;
+﻿using CertificatesWebApp.Users.Dtos;
+using CertificatesWebApp.Users.Exceptions;
 using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +14,12 @@ namespace CertificatesWebApp.Users.Controllers
     {
         private readonly IUserService _userService;
         private readonly ICredentialsService _credentialsService;
-        public UserController(IUserService userService, ICredentialsService credentialsService)
+        private readonly IConfirmationService _confirmationService;
+        public UserController(IUserService userService, ICredentialsService credentialsService, IConfirmationService confirmationService)
         {
             _credentialsService = credentialsService;
             _userService = userService;
+            _confirmationService = confirmationService;
         }
 
         [HttpPost(Name = "Register")]
@@ -51,6 +53,17 @@ namespace CertificatesWebApp.Users.Controllers
             }
             catch (UserNotActivatedException e)
             {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost(Name = "ActivateAccount")]
+        public ActionResult<String> activateAccount(String code){
+            try {
+                _confirmationService.ActivateAccount(code);
+                return Ok("Account verified successfully!");
+            }
+            catch (ConfirmationCodeException e) {
                 return BadRequest(e.Message);
             }
         }

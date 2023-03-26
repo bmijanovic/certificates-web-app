@@ -5,25 +5,31 @@ using System.Net.Mail;
 
 namespace CertificatesWebApp.Users.Services
 {
-    public interface ISendGridService
+    public interface IMailService
     {
-        public Task sendActivationMailAsync(User user, String code);
+        public Task SendActivationMail(User user, String code);
        
     }
 
-    public class SendGridService : ISendGridService
+    public class MailService : IMailService
     {
-        public SendGridService() { }
+        public MailService() { }
 
-        public async Task sendActivationMailAsync(User user, String code) {
-            String apiKey = Environment.GetEnvironmentVariable("NAME_OF_THE_ENVIRONMENT_VARIABLE_FOR_YOUR_SENDGRID_KEY");
+        public async Task SendActivationMail(User user, String code) {
+            String apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             SendGridClient client = new SendGridClient(apiKey);
-            EmailAddress from = new EmailAddress("test@example.com", "Example User");
-            String subject = "Activation Mail";
-            EmailAddress to = new EmailAddress(user.Email, user.Name + " " + user.Surname);
-            String plainTextContent = "nz sta je ovo";
-            String htmlContent = "<strong>" + code + "</strong>";
-            SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            SendGridMessage msg = new SendGridMessage();
+            msg.SetFrom(new EmailAddress("certificateswebapp@gmail.com", "Certificates Web app"));
+            msg.AddTo(new EmailAddress(user.Email, user.Name + " " + user.Surname));
+            msg.SetTemplateId("d-3527be23b08d4f0582cd87fe0a00314e");
+
+            var dynamicTemplateData = new
+            {
+                url_page = "https://localhost:7018/api/User/activateAccount" + "?code=" + code,
+                user_name = user.Name
+            };
+
+            msg.SetTemplateData(dynamicTemplateData);
             Response response = await client.SendEmailAsync(msg);
         }
 
