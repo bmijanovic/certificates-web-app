@@ -16,8 +16,9 @@ namespace CertificatesWebApp.Users.Services
         public MailService() { }
 
         public async Task SendActivationMail(User user, String code) {
-            String apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-            SendGridClient client = new SendGridClient(apiKey);
+            StreamReader sr = new StreamReader("sendgrid_api_key.txt");
+            String sendgridApiKey = sr.ReadLine();
+            SendGridClient client = new SendGridClient(sendgridApiKey);
             SendGridMessage msg = new SendGridMessage();
             msg.SetFrom(new EmailAddress("certificateswebapp@gmail.com", "Certificates Web app"));
             msg.AddTo(new EmailAddress(user.Email, user.Name + " " + user.Surname));
