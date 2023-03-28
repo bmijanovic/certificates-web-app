@@ -17,6 +17,9 @@ namespace Data.Models
         [Column("password")]
         public String Password { get; set; }
 
+        [Column("salt")]
+        public String Salt { get; set; }
+
         [Column("expiration_date")]
         public DateTime ExpiratonDate { get; set; }
 

@@ -142,6 +142,11 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("password");
 
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("salt");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 

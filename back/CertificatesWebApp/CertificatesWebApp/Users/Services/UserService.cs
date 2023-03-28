@@ -54,7 +54,8 @@ namespace CertificatesWebApp.Users.Services
             _confirmationRepository.Create(confirmation);
 
             Credentials credentials = new Credentials();
-            credentials.Password = userDTO.Password;
+            credentials.Salt = BCrypt.Net.BCrypt.GenerateSalt();
+            credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password, credentials.Salt);
             credentials.User = user;
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
             _credentialsService.CreateCredentials(credentials);

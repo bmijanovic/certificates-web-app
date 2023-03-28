@@ -1,7 +1,9 @@
 using CertificatesWebApp.Certificates.Repositories;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,8 +44,25 @@ builder.Services.AddCors(feature =>
                                     .AllowAnyHeader()
                                     .AllowAnyMethod()
                                     .SetIsOriginAllowed(host => true)
-                                    .AllowCredentials()
+                    .AllowCredentials()
                                 ));
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+       .AddCookie(options =>
+       {
+           options.Cookie.Name = "authCookie";
+           options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+           options.Cookie.MaxAge = TimeSpan.FromSeconds(30);
+
+           options.Events = new CookieAuthenticationEvents
+           {
+               OnRedirectToLogin = context =>
+               {
+                   context.Response.StatusCode = 401;
+                   return Task.CompletedTask;
+               }
+           };
+       });
 
 var app = builder.Build();
 
@@ -56,6 +75,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
