@@ -12,5 +12,12 @@ namespace CertificatesWebApp.Certificates.Controllers
         {
             _certificateService = certificateService;
         }
+        [HttpPost]
+        [Route("makeRoot/{userId}")]
+        public ActionResult<Boolean> MakeRequestForRoot(Guid userId)
+        {
+            _certificateService.MakeRootCertificate();
+            return Ok(true);
+        }
     }
 }

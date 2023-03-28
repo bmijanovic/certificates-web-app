@@ -43,6 +43,14 @@ e2e/*.map
 *.userosscache
 *.sln.docstates
 
+#certificates
+*.crt
+*.cert
+*.pfx
+*.key
+*.keystore
+*.jks
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
