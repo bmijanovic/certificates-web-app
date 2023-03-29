@@ -19,19 +19,22 @@ namespace Data.Models
         public String SerialNumber { get; set; }
 
         [Column("start_date")]
-        public String StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         [Column("end_date")]
-        public String EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         [Column("type")]
-        public Boolean CertificateType { get; set; }
+        public CertificateType CertificateType { get; set; }
 
         [Column("is_valid")]
         public Boolean IsValid { get; set; }
 
         [Column("issuer_id")]
         public Guid IssuerId { get; set; }
+
+        [Column("owner_id")]
+        public Guid OwnerId { get; set; }
 
         [Column("address")]
         public String Address { get; set; }

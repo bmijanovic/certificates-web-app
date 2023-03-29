@@ -50,9 +50,6 @@ namespace Data.Context
             //    .HasOne(x => x.User)
             //    .WithMany();
 
-            //modelBuilder.Entity<CertificateRequest>()
-            //    .HasOne(x => x.User)
-            //    .WithMany();
 
         }
     }
