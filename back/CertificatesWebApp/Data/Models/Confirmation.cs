@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Data.Models
 {
-    [Table("activations")]
+    [Table("confirmations")]
     public class Confirmation : IBaseEntity
     {
         [Column("id")]

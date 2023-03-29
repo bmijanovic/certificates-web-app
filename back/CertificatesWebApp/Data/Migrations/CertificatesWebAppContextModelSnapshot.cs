@@ -147,7 +147,7 @@ namespace Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("activations");
+                    b.ToTable("confirmations");
                 });
 
             modelBuilder.Entity("Data.Models.Credentials", b =>
@@ -165,6 +165,11 @@ namespace Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("password");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("salt");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
