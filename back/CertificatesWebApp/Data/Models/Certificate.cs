@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Models
 {
@@ -11,6 +6,8 @@ namespace Data.Models
     [Table("certificates")]
     public class Certificate : IBaseEntity
     {
+        //fali signature alg
+        //bolje issuer serial number
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
@@ -19,13 +16,16 @@ namespace Data.Models
         public String SerialNumber { get; set; }
 
         [Column("start_date")]
-        public String StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         [Column("end_date")]
-        public String EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         [Column("type")]
-        public Boolean CertificateType { get; set; }
+        public CertificateType Type { get; set; }
+
+        [Column("hash_algorithm")]
+        public String HashAlgorithm { get; set; }
 
         [Column("is_valid")]
         public Boolean IsValid { get; set; }
@@ -33,7 +33,24 @@ namespace Data.Models
         [Column("issuer_id")]
         public Guid IssuerId { get; set; }
 
-        [Column("address")]
-        public String Address { get; set; }
+        [Column("owner_id")]
+        public Guid OwnerId { get; set; }
+
+        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm)
+        {
+            
+            SerialNumber = serialNumber;
+            StartDate = startDate;
+            EndDate = endDate;
+            Type = certificateType;
+            IsValid = isValid;
+            IssuerId = issuerId;
+            OwnerId = ownerId;
+            HashAlgorithm = hashAlgorithm;
+        }
+
+        public Certificate()
+        {
+        }
     }
 }

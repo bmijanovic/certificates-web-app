@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 
 namespace Data.Context
@@ -38,6 +39,15 @@ namespace Data.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder
+            .Entity<CertificateRequest>()
+            .Property(d => d.Type)
+            .HasConversion(new EnumToStringConverter<CertificateType>());
+
+            modelBuilder
+            .Entity<Certificate>()
+            .Property(d => d.Type)
+            .HasConversion(new EnumToStringConverter<CertificateType>());
             //modelBuilder.Entity<User>()
             //    .HasMany(x => x.Certificates)
             //    .WithOne();
@@ -50,9 +60,6 @@ namespace Data.Context
             //    .HasOne(x => x.User)
             //    .WithMany();
 
-            //modelBuilder.Entity<CertificateRequest>()
-            //    .HasOne(x => x.User)
-            //    .WithMany();
 
         }
     }

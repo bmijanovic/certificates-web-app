@@ -10,6 +10,7 @@ namespace CertificatesWebApp.Users.Services
     {
         User CreateUser(UserDTO userDTO);
         User UpdateUser(User user);
+        User Get(Guid userId);
     }
     public class UserService : IUserService
     {
@@ -67,6 +68,11 @@ namespace CertificatesWebApp.Users.Services
 
         public User UpdateUser(User user) { 
             return _userRepository.Update(user);
+        }
+
+        public User Get(Guid userId)
+        {
+            return _userRepository.Read(userId);
         }
     }
 }
