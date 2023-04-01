@@ -10,6 +10,8 @@ namespace Data.Models
     [Table("users")]
     public class User : IBaseEntity
     {
+        
+
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
@@ -30,5 +32,19 @@ namespace Data.Models
         public Boolean IsActivated { get; set; }
         public List<Certificate> Certificates { get; set; }
 
+        public User()
+        {
+        }
+
+        public User(Guid id, string name, string surname, string telephone, string email, bool isActivated, List<Certificate> certificates)
+        {
+            Id = id;
+            Name = name;
+            Surname = surname;
+            Telephone = telephone;
+            Email = email;
+            IsActivated = isActivated;
+            Certificates = certificates;
+        }
     }
 }

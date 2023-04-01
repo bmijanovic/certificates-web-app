@@ -13,11 +13,20 @@ namespace CertificatesWebApp.Certificates.Controllers
             _certificateService = certificateService;
         }
         [HttpPost]
-        [Route("makeRoot/{userId}")]
-        public ActionResult<Boolean> MakeRequestForRoot(Guid userId)
+        [Route("accept/{certificateRequestId}")]
+        public ActionResult<Boolean> AcceptCertificate(Guid certificateRequestId)
         {
-            _certificateService.MakeRootCertificate();
+            _certificateService.AcceptCertificate(certificateRequestId);
             return Ok(true);
         }
+
+        [HttpPost]
+        [Route("decline/{certificateRequestId}")]
+        public ActionResult<Boolean> DeclineCertificate(Guid certificateRequestId)
+        {
+            _certificateService.DeclineCertificate(certificateRequestId);
+            return Ok(true);
+        }
+
     }
 }

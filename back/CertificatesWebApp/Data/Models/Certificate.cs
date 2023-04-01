@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Models
 {
@@ -11,6 +6,8 @@ namespace Data.Models
     [Table("certificates")]
     public class Certificate : IBaseEntity
     {
+        //fali signature alg
+        //bolje issuer serial number
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }

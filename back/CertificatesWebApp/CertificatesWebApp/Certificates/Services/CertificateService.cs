@@ -3,14 +3,13 @@ using CertificatesWebApp.Infrastructure;
 using Data.Models;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
 
 namespace CertificatesWebApp.Users.Services
 {
     public interface ICertificateService : IService<Certificate>
     {
-        void MakeRootCertificate();
+        void AcceptCertificate(Guid certificateRequestId);
+        void DeclineCertificate(Guid certificateRequestId);
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
     }
@@ -22,27 +21,30 @@ namespace CertificatesWebApp.Users.Services
         {
             _certificateRepository = certificateRepository;
         }
-        public void MakeRootCertificate()   
+        public void AcceptCertificate(Guid certificateRequestId)   
         {
-            string user_name = "Goran";
-            string user_lastname = "Sladic";
-            string user_email = "sladic@uns.ac.rs";
-            Guid user_id = Guid.Parse("586c87e5-9c75-415f-9963-273bcf068f2d");
+            //get user from database
+            User user = new User(Guid.Parse("586c87e5-9c75-415f-9963-273bcf068f2d"), "goran", "sladic", "0653614028", "goran@uns.ac.rs", true, new List<Certificate>());
+            //get issuerid
             Guid issuer_id = Guid.Parse("586c87e5-9c75-415f-9963-273bcf068f2d");
+            //get request
             DateTime expDate= DateTime.Now.AddDays(20);
             string algorithm = "SHA256";
-            CertificateType cType = CertificateType.ROOT;
-            string flagsInput = "1,2";
+            CertificateType cType = CertificateType.INTERMEDIATE;
+            string flagsInput = "1,2,4,6";
             string attributes = "O=Root";
             X509KeyUsageFlags flags = getFlags(flagsInput);
             using (var rsa = RSA.Create(4096))
             {
-                // ja generisem CN,SURNAME,GIVENNAME,E,UID dobijam O,OU,C
                 System.Security.Cryptography.X509Certificates.CertificateRequest certificateRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(attributes,rsa, new HashAlgorithmName(algorithm), RSASignaturePadding.Pkcs1);
-                X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType==CertificateType.END), false, 0, true));
                 certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(flags, false));
+
+                //root certificate if needed
+                X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
+
+
                 if (cType==CertificateType.ROOT)
                     caCertificate= certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 else
@@ -57,41 +59,26 @@ namespace CertificatesWebApp.Users.Services
 
                SaveCertificateToFileSystem(caCertificate, rsa);
 
-                SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer_id, user_id));
-
-                //sacuvati u bazu
-
-                /*byte[] certData = File.ReadAllBytes(filename);
-                byte[] privateKeyData = File.ReadAllBytes(keyFilename);
-                Console.WriteLine(privateKeyData.Length);
-
-                RSA newRSA = RSA.Create();
-                newRSA.ImportRSAPrivateKey(privateKeyData, out _);
-
-                X509Certificate2 cert = new X509Certificate2(certData).CopyWithPrivateKey(newRSA);
-                X509Certificate2UI.DisplayCertificate(cert);*/
+               //SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer_id, user.Id));
             }
 
         }
-        private X509KeyUsageFlags getFlags(string exponents) {
 
-            if (exponents.Length == 0)
-                return X509KeyUsageFlags.None;
-            X509KeyUsageFlags flag=X509KeyUsageFlags.None;
-            List<int> numbers = new List<int>();
-            foreach (string exponent in exponents.Split(','))
-            {
-                flag = flag|(X509KeyUsageFlags)Enum.Parse(typeof(X509KeyUsageFlags),Enum.GetName(typeof(X509KeyUsageFlags), Convert.ToInt32(Math.Pow(2,Convert.ToInt32(exponent)))));
-            }
-            return flag;
+        public void DeclineCertificate(Guid certificateRequestId)
+        {
+            //get certificate request
 
+            //set certificate request to decline
+
+            //save certificate
         }
+        
         public Certificate SaveCertificate(Certificate certificate)
         {
             return _certificateRepository.Create(certificate);   
         }
 
-        public void SaveCertificateToFileSystem(X509Certificate2 certificate,RSA rsa )
+        public void SaveCertificateToFileSystem(X509Certificate2 certificate,RSA rsa)
         {
             String filename = $"Certs/{certificate.SerialNumber}.crt";
             String keyFilename = $"Keys/{certificate.SerialNumber}.key";
@@ -101,6 +88,33 @@ namespace CertificatesWebApp.Users.Services
 
             System.IO.File.WriteAllBytes(keyFilename, keyBytes);
             System.IO.File.WriteAllBytes(filename, certificateBytes);
+        }
+
+        private X509KeyUsageFlags getFlags(string exponents)
+        {
+
+            if (exponents.Length == 0)
+                return X509KeyUsageFlags.None;
+            X509KeyUsageFlags flag = X509KeyUsageFlags.None;
+            List<int> numbers = new List<int>();
+            foreach (string exponent in exponents.Split(','))
+            {
+                flag = flag | (X509KeyUsageFlags)Enum.Parse(typeof(X509KeyUsageFlags), Enum.GetName(typeof(X509KeyUsageFlags), Convert.ToInt32(Math.Pow(2, Convert.ToInt32(exponent)))));
+            }
+            return flag;
+
+        }
+
+        private String generateAttributes(User user, string attributes)
+        {
+            string common_name = string.Concat("CN=", user.Name, " ", user.Surname);
+            string givenname = string.Concat("GIVENNAME=", user.Name);
+            //string surname = string.Concat("SURNAME=", user.Surname);
+            string email = string.Concat("E=", user.Email);
+            string telephone = string.Concat("TEL=", user.Telephone);
+            string uid = string.Concat("UID=", user.Id);
+            return string.Concat(common_name, ";", givenname, ";"/*,surname, ";"*/, email, ";", telephone, ";", uid, ";", attributes);
+
         }
     }
 }
