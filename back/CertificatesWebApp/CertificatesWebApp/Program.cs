@@ -1,7 +1,10 @@
 using CertificatesWebApp.Certificates.Repositories;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +32,7 @@ builder.Services.AddTransient<ICertificateService, CertificateService>();
 builder.Services.AddTransient<ICertificateRequestService, CertificateRequestService>();
 builder.Services.AddTransient<IConfirmationService, ConfirmationService>();
 builder.Services.AddTransient<ICredentialsService, CredentialsService>();
-builder.Services.AddTransient<ISendGridService, SendGridService>();
+builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddTransient<IUserService, UserService>();
 
 builder.Services.AddCors(feature =>
@@ -41,12 +44,27 @@ builder.Services.AddCors(feature =>
                                     .AllowAnyHeader()
                                     .AllowAnyMethod()
                                     .SetIsOriginAllowed(host => true)
-                                    .AllowCredentials()
+                    .AllowCredentials()
                                 ));
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+       .AddCookie(options =>
+       {
+           options.Cookie.Name = "authCookie";
+           options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+           options.Cookie.MaxAge = TimeSpan.FromSeconds(30);
+
+           options.Events = new CookieAuthenticationEvents
+           {
+               OnRedirectToLogin = context =>
+               {
+                   context.Response.StatusCode = 401;
+                   return Task.CompletedTask;
+               }
+           };
+       });
+
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -57,6 +75,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

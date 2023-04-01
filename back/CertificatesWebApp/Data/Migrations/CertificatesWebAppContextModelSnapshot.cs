@@ -29,12 +29,11 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("address");
 
-                    b.Property<bool>("CertificateType")
+                    b.Property<int>("CertificateType")
                         .HasColumnType("INTEGER")
                         .HasColumnName("type");
 
-                    b.Property<string>("EndDate")
-                        .IsRequired()
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("end_date");
 
@@ -46,13 +45,16 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("issuer_id");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("owner_id");
+
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("serial_number");
 
-                    b.Property<string>("StartDate")
-                        .IsRequired()
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("start_date");
 
@@ -73,6 +75,24 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("Flags")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("flags");
+
+                    b.Property<string>("HashAlgorithm")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("hash_algorithm");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("owner_id");
+
                     b.Property<string>("ParentSerialNumber")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -86,12 +106,16 @@ namespace Data.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("state");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("SubjectText")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("subject_text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("type");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("requests");
                 });
@@ -123,7 +147,7 @@ namespace Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("activations");
+                    b.ToTable("confirmations");
                 });
 
             modelBuilder.Entity("Data.Models.Credentials", b =>
@@ -141,6 +165,11 @@ namespace Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("password");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("salt");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -202,17 +231,6 @@ namespace Data.Migrations
                     b.HasOne("Data.Models.User", null)
                         .WithMany("Certificates")
                         .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("Data.Models.CertificateRequest", b =>
-                {
-                    b.HasOne("Data.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Data.Models.Confirmation", b =>
