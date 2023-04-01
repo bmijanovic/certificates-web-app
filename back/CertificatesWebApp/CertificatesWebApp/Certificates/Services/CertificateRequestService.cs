@@ -11,6 +11,9 @@ namespace CertificatesWebApp.Users.Services
     public interface ICertificateRequestService : IService<Data.Models.CertificateRequest>
     {
         Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto);
+        Data.Models.CertificateRequest Get(Guid certificateRequestId);
+        Data.Models.CertificateRequest Update(Data.Models.CertificateRequest certificateRequest);
+
     }
     public class CertificateRequestService : ICertificateRequestService
     {
@@ -114,6 +117,16 @@ namespace CertificatesWebApp.Users.Services
             certificateRequest.OwnerId = userId;
 
             return _certificateRequestRepository.Create(certificateRequest);
+        }
+
+        public Data.Models.CertificateRequest Get(Guid certificateRequestId)
+        {
+            return _certificateRequestRepository.Read(certificateRequestId);
+        }
+
+        public Data.Models.CertificateRequest Update(Data.Models.CertificateRequest certificateRequest)
+        {
+            return _certificateRequestRepository.Update(certificateRequest);
         }
 
     }

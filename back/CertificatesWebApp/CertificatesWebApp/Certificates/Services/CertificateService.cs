@@ -3,6 +3,7 @@ using CertificatesWebApp.Infrastructure;
 using Data.Models;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using CertificatesWebApp.Users.Repositories;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -16,23 +17,29 @@ namespace CertificatesWebApp.Users.Services
     public class CertificateService : ICertificateService
     {
         private readonly ICertificateRepository _certificateRepository;
+        private readonly ICertificateRequestService _certificateRequestService;
+        private readonly IUserService _userService;
 
-        public CertificateService(ICertificateRepository certificateRepository)
+        public CertificateService(ICertificateRepository certificateRepository, ICertificateRequestService certificateRequestService, IUserService userService)
         {
             _certificateRepository = certificateRepository;
+            _certificateRequestService = certificateRequestService;
+            _userService = userService;
         }
         public void AcceptCertificate(Guid certificateRequestId)   
         {
-            //get user from database
-            User user = new User(Guid.Parse("586c87e5-9c75-415f-9963-273bcf068f2d"), "goran", "sladic", "0653614028", "goran@uns.ac.rs", true, new List<Certificate>());
-            //get issuerid
-            Guid issuer_id = Guid.Parse("586c87e5-9c75-415f-9963-273bcf068f2d");
-            //get request
-            DateTime expDate= DateTime.Now.AddDays(20);
-            string algorithm = "SHA256";
-            CertificateType cType = CertificateType.INTERMEDIATE;
-            string flagsInput = "1,2,4,6";
-            string attributes = "O=Root";
+            Data.Models.CertificateRequest request = _certificateRequestService.Get(certificateRequestId);
+            User user = _userService.Get(request.OwnerId);
+            User issuer=null;
+            if (request.ParentSerialNumber!="")
+                issuer = _userService.Get(_certificateRepository.FindBySerialNumber(request.ParentSerialNumber).Result.OwnerId);
+
+
+            DateTime expDate= request.EndDate;
+            string algorithm = request.HashAlgorithm;
+            CertificateType cType = request.Type;
+            string flagsInput = request.Flags;
+            string attributes = request.SubjectText;
             X509KeyUsageFlags flags = getFlags(flagsInput);
             using (var rsa = RSA.Create(4096))
             {
@@ -40,37 +47,38 @@ namespace CertificatesWebApp.Users.Services
                 certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType==CertificateType.END), false, 0, true));
                 certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(flags, false));
 
-                //root certificate if needed
                 X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
 
 
-                if (cType==CertificateType.ROOT)
-                    caCertificate= certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
+                if (cType == CertificateType.ROOT)
+                {
+                    caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
+                    SaveCertificateToFileSystem(caCertificate, rsa);
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, user.Id, user.Id, algorithm));
+                }
                 else
                 {
                     Span<byte> serialNumber = stackalloc byte[8];
                     RandomNumberGenerator.Fill(serialNumber);
                     caCertificate = certificateRequest.Create(tempCert, DateTimeOffset.Now.Date, expDate, serialNumber);
+                    SaveCertificateToFileSystem(caCertificate, rsa);
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm));
                 }
                     
-
                X509Certificate2UI.DisplayCertificate(caCertificate);
 
-               SaveCertificateToFileSystem(caCertificate, rsa);
-
-               //SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer_id, user.Id));
+               request.State = CertificateRequestState.ACCEPTED;
+               _certificateRequestService.Update(request);
             }
 
         }
 
         public void DeclineCertificate(Guid certificateRequestId)
         {
-            //get certificate request
-
-            //set certificate request to decline
-
-            //save certificate
+            Data.Models.CertificateRequest request = _certificateRequestService.Get(certificateRequestId);
+            request.State = CertificateRequestState.REJECTED;
+            _certificateRequestService.Update(request);
         }
         
         public Certificate SaveCertificate(Certificate certificate)

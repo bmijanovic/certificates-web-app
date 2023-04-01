@@ -22,7 +22,10 @@ namespace Data.Models
         public DateTime EndDate { get; set; }
 
         [Column("type")]
-        public CertificateType CertificateType { get; set; }
+        public CertificateType Type { get; set; }
+
+        [Column("hash_algorithm")]
+        public String HashAlgorithm { get; set; }
 
         [Column("is_valid")]
         public Boolean IsValid { get; set; }
@@ -33,16 +36,17 @@ namespace Data.Models
         [Column("owner_id")]
         public Guid OwnerId { get; set; }
 
-        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId)
+        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm)
         {
             
             SerialNumber = serialNumber;
             StartDate = startDate;
             EndDate = endDate;
-            CertificateType = certificateType;
+            Type = certificateType;
             IsValid = isValid;
             IssuerId = issuerId;
             OwnerId = ownerId;
+            HashAlgorithm = hashAlgorithm;
         }
 
         public Certificate()
