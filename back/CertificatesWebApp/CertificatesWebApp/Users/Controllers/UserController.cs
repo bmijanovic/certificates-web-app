@@ -88,33 +88,5 @@ namespace CertificatesWebApp.Users.Controllers
                 return BadRequest(e.Message);
             }
         }
-
-        [HttpGet]
-        [Authorize(Roles = ("User"))]
-        public async Task<IActionResult> privateEndpointAsync()
-        {
-            AuthenticateResult result = await HttpContext.AuthenticateAsync();
-
-            if (result.Succeeded)
-            {
-                try
-                {
-                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                    String role = identity.FindFirst(ClaimTypes.Role).Value;
-                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                    return Ok(role + " " + userId);
-                }
-                catch (Exception e) {
-
-                    return BadRequest(e.Message);
-                }
-            }
-            else
-            {
-                return BadRequest("Didn't find claim");
-            }
-
-        }
     }
 }

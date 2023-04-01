@@ -11,8 +11,7 @@ namespace CertificatesWebApp.Users.Services
     public interface ICertificateRequestService : IService<Data.Models.CertificateRequest>
     {
         Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto);
-        Data.Models.CertificateRequest Get(Guid certificateRequestId);
-        Data.Models.CertificateRequest Update(Data.Models.CertificateRequest certificateRequest);
+        Data.Models.CertificateRequest GetCertificateRequest(Guid certificateRequestId);
 
     }
     public class CertificateRequestService : ICertificateRequestService
@@ -21,17 +20,19 @@ namespace CertificatesWebApp.Users.Services
         private readonly IUserRepository _userRepository;
         private readonly IAdminRepository _adminRepository;
         private readonly ICertificateRepository _certificateRepository;
+        private readonly ICertificateService _certificateService;
 
-        public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository)
+        public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository, ICertificateService certificateService)
         {
             _certificateRequestRepository = certificateRequestRepository;
+            _certificateService = certificateService;
         }
 
         public async Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto)
         {
             if (dto.Type != CertificateType.ROOT && !(await checkValidity(dto.EndDate, dto.ParentSerialNumber)))
                 return;
-            if(role == "ADMIN")
+            if(role == "Admin")
             {
                 adminMakesRequests(userId, dto);
             }
@@ -69,8 +70,7 @@ namespace CertificatesWebApp.Users.Services
         private void adminMakesRequests(Guid userId, CertificateRequestDTO dto)
         {
             Data.Models.CertificateRequest request = saveRequest(userId, dto);
-            //pozvati u certificate servisu metodu za prihvatanje zahteva
-            //certificateService.accept(request.Id);
+            _certificateService.AcceptCertificate(request.Id);
         }
 
         private async Task userMakesRequests(Guid userId, CertificateRequestDTO dto)
@@ -82,8 +82,7 @@ namespace CertificatesWebApp.Users.Services
             if(await amIOwner(userId, dto.ParentSerialNumber))
             {
                 Data.Models.CertificateRequest request = saveRequest(userId, dto);
-                //pozvati u certificate servisu metodu za prihvatanje zahteva
-                //certificateService.accept(request.Id);
+                _certificateService.AcceptCertificate(request.Id);
             }
             else
             {
@@ -129,5 +128,8 @@ namespace CertificatesWebApp.Users.Services
             return _certificateRequestRepository.Update(certificateRequest);
         }
 
+        public Data.Models.CertificateRequest GetCertificateRequest(Guid certificateRequestId) { 
+            return _certificateRequestRepository.Read(certificateRequestId);
+        }
     }
 }

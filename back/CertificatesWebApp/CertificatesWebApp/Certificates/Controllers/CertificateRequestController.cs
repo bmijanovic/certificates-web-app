@@ -18,32 +18,30 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpPost]
-        [Route("{userId}")]
-        public async Task<ActionResult> MakeRequestForCertificate(Guid userId, [FromBody] CertificateRequestDTO dto)
+        [Authorize]
+        public async Task<ActionResult> MakeRequestForCertificate([FromBody] CertificateRequestDTO dto)
         {
-            var result = await HttpContext.AuthenticateAsync();
-            string claimValue = "ADMIN";
-            /*if (result.Succeeded)
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
             {
-                var identity = result.Principal.Identity as ClaimsIdentity;
-                claimValue = identity.FindFirst("Role")?.Value;
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String role = identity.FindFirst(ClaimTypes.Role).Value;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                    await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
+                    return Ok("Certificate request created successfully!");
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
             }
             else
             {
-                return BadRequest("Didn't find claim");
-            }*/
-            try
-            {
-                await _certificateRequestService.MakeRequestForCertificate(userId, claimValue, dto);
+                return BadRequest("Cookie error");
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            //String role = "ADMIN"
-            //await _certificateRequestService.MakeRequestForCertificate(userId, role, dto);
-
-            return Ok();
         }
     }
 }

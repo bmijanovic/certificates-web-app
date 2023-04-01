@@ -54,7 +54,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
        {
            options.Cookie.Name = "auth";
            options.SlidingExpiration = true;
-           options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+           options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
            options.Cookie.MaxAge = options.ExpireTimeSpan;
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
        });
