@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Data.Models
 {
-    [Table("admins")]
     public class Admin : User
     {
 

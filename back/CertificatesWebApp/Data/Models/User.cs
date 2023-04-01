@@ -29,6 +29,7 @@ namespace Data.Models
         [Column("activated")]
         public Boolean IsActivated { get; set; }
         public List<Certificate> Certificates { get; set; }
+        public string Discriminator { get; private set; }
 
     }
 }

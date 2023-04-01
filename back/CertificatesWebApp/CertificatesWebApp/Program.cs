@@ -1,11 +1,10 @@
 using CertificatesWebApp.Certificates.Repositories;
 using CertificatesWebApp.Infrastructure;
+using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +34,9 @@ builder.Services.AddTransient<ICredentialsService, CredentialsService>();
 builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddTransient<IUserService, UserService>();
 
+//Security
+builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
+
 builder.Services.AddCors(feature =>
                 feature.AddPolicy(
                     "CorsPolicy",
@@ -50,19 +52,14 @@ builder.Services.AddCors(feature =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddCookie(options =>
        {
-           options.Cookie.Name = "authCookie";
-           options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-           options.Cookie.MaxAge = TimeSpan.FromSeconds(30);
-
-           options.Events = new CookieAuthenticationEvents
-           {
-               OnRedirectToLogin = context =>
-               {
-                   context.Response.StatusCode = 401;
-                   return Task.CompletedTask;
-               }
-           };
+           options.Cookie.Name = "auth";
+           options.SlidingExpiration = true;
+           options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+           options.Cookie.MaxAge = options.ExpireTimeSpan;
+           options.EventsType = typeof(CustomCookieAuthenticationEvents);
        });
+
+
 
 var app = builder.Build();
 

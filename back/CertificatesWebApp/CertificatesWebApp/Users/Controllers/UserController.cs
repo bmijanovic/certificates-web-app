@@ -2,16 +2,11 @@
 using CertificatesWebApp.Users.Exceptions;
 using CertificatesWebApp.Users.Services;
 using Data.Models;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SendGrid.Helpers.Mail;
-using System.Net;
 using System.Security.Claims;
-using System.Security.Principal;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 
 namespace CertificatesWebApp.Users.Controllers
 {
@@ -53,9 +48,9 @@ namespace CertificatesWebApp.Users.Controllers
             try
             {
                 User user = _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
-                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                //change to role in future
-                identity.AddClaim(new Claim("Role", user.Name));
+                ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
                 HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
                 return Ok("Logged in successfully!");
@@ -87,7 +82,7 @@ namespace CertificatesWebApp.Users.Controllers
         public ActionResult<String> activateAccount(String code){
             try {
                 _confirmationService.ActivateAccount(code);
-                return Ok("Account verified successfully!");
+                return Ok("Account activated successfully!");
             }
             catch (ConfirmationCodeException e) {
                 return BadRequest(e.Message);
@@ -95,17 +90,25 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = ("User"))]
         public async Task<IActionResult> privateEndpointAsync()
         {
-            var result = await HttpContext.AuthenticateAsync();
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
 
             if (result.Succeeded)
             {
-                var identity = result.Principal.Identity as ClaimsIdentity;
-                var claimValue = identity.FindFirst("Role")?.Value;
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String role = identity.FindFirst(ClaimTypes.Role).Value;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                return Ok(claimValue);
+                    return Ok(role + " " + userId);
+                }
+                catch (Exception e) {
+
+                    return BadRequest(e.Message);
+                }
             }
             else
             {

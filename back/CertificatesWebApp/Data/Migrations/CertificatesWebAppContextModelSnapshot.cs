@@ -164,6 +164,10 @@ namespace Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("id");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -192,14 +196,18 @@ namespace Data.Migrations
 
                     b.ToTable("users");
 
-                    b.UseTptMappingStrategy();
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Data.Models.Admin", b =>
                 {
                     b.HasBaseType("Data.Models.User");
 
-                    b.ToTable("admins");
+                    b.ToTable("users");
+
+                    b.HasDiscriminator().HasValue("Admin");
                 });
 
             modelBuilder.Entity("Data.Models.Certificate", b =>
@@ -240,15 +248,6 @@ namespace Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Data.Models.Admin", b =>
-                {
-                    b.HasOne("Data.Models.User", null)
-                        .WithOne()
-                        .HasForeignKey("Data.Models.Admin", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Data.Models.User", b =>
