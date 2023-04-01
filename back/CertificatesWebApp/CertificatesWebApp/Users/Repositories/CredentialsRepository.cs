@@ -1,20 +1,24 @@
-﻿using CertificatesWebApp.Interfaces;
+﻿using CertificatesWebApp.Infrastructure;
 using Data.Context;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CertificatesWebApp.Users.Repositories
 {
     public interface ICredentialsRepository : IRepository<Credentials>
     {
-
+        Credentials findCredentials(String email);
     }
-    public class CredentialsRepository : ICredentialsRepository
+    public class CredentialsRepository : Repository<Credentials>, ICredentialsRepository
     {
-        private readonly CertificatesWebAppContext _certificatesWebAppContext;
-
-        public CredentialsRepository(CertificatesWebAppContext certificatesWebAppContext)
+        public CredentialsRepository(CertificatesWebAppContext certificatesWebAppContext) : base(certificatesWebAppContext)
         {
-            _certificatesWebAppContext = certificatesWebAppContext;
+
+        }
+
+        public Credentials findCredentials(String email) {
+            return _entities.Include(e => e.User).FirstOrDefault(e => e.User.Email == email);
+
         }
     }
 }

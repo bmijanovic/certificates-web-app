@@ -1,20 +1,23 @@
-﻿using CertificatesWebApp.Interfaces;
+﻿using CertificatesWebApp.Infrastructure;
 using Data.Context;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CertificatesWebApp.Users.Repositories
 {
     public interface IConfirmationRepository : IRepository<Confirmation>
     {
-
+        Confirmation FindUserActivationByCode(String code);
     }
-    public class ConfirmationRepository : IConfirmationRepository
+    public class ConfirmationRepository : Repository<Confirmation>, IConfirmationRepository
     {
-        private readonly CertificatesWebAppContext _certificatesWebAppContext;
-
-        public ConfirmationRepository(CertificatesWebAppContext certificatesWebAppContext)
+        public ConfirmationRepository(CertificatesWebAppContext certificatesWebAppContext) : base(certificatesWebAppContext)
         {
-            _certificatesWebAppContext = certificatesWebAppContext;
+
+        }
+
+        public Confirmation FindUserActivationByCode(String code) { 
+            return _entities.Include(e => e.User).FirstOrDefault(e => e.Code == code && e.ConfirmationType == ConfirmationType.ACTIVATION);
         }
     }
 }
