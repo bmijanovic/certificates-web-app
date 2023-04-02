@@ -45,22 +45,14 @@ namespace Data.Context
             .HasConversion(new EnumToStringConverter<CertificateType>());
 
             modelBuilder
+            .Entity<CertificateRequest>()
+            .Property(d => d.State)
+            .HasConversion(new EnumToStringConverter<CertificateRequestState>());
+
+            modelBuilder
             .Entity<Certificate>()
             .Property(d => d.Type)
             .HasConversion(new EnumToStringConverter<CertificateType>());
-            //modelBuilder.Entity<User>()
-            //    .HasMany(x => x.Certificates)
-            //    .WithOne();
-
-            //modelBuilder.Entity<User>()
-            //    .HasMany(x => x.Conformations)
-            //    .WithOne();
-
-            //modelBuilder.Entity<Credentials>()
-            //    .HasOne(x => x.User)
-            //    .WithMany();
-
-
         }
     }
 }

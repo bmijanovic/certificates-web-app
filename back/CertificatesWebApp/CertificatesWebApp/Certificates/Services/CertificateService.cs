@@ -3,7 +3,6 @@ using CertificatesWebApp.Infrastructure;
 using Data.Models;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-using CertificatesWebApp.Users.Repositories;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -13,22 +12,23 @@ namespace CertificatesWebApp.Users.Services
         void DeclineCertificate(Guid certificateRequestId);
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
+        Certificate GetBySerialNumber(String serialNumber);
     }
     public class CertificateService : ICertificateService
     {
         private readonly ICertificateRepository _certificateRepository;
-        private readonly ICertificateRequestService _certificateRequestService;
+        private readonly ICertificateRequestRepository _certificateRequestRepository;
         private readonly IUserService _userService;
 
-        public CertificateService(ICertificateRepository certificateRepository, ICertificateRequestService certificateRequestService, IUserService userService)
+        public CertificateService(ICertificateRepository certificateRepository, ICertificateRequestRepository certificateRequestRepository, IUserService userService)
         {
             _certificateRepository = certificateRepository;
-            _certificateRequestService = certificateRequestService;
+            _certificateRequestRepository = certificateRequestRepository;
             _userService = userService;
         }
         public void AcceptCertificate(Guid certificateRequestId)   
         {
-            Data.Models.CertificateRequest request = _certificateRequestService.Get(certificateRequestId);
+            Data.Models.CertificateRequest request = _certificateRequestRepository.Read(certificateRequestId);
             User user = _userService.Get(request.OwnerId);
             User issuer=null;
             if (request.ParentSerialNumber!="")
@@ -69,16 +69,16 @@ namespace CertificatesWebApp.Users.Services
                X509Certificate2UI.DisplayCertificate(caCertificate);
 
                request.State = CertificateRequestState.ACCEPTED;
-               _certificateRequestService.Update(request);
+                _certificateRequestRepository.Update(request);
             }
 
         }
 
         public void DeclineCertificate(Guid certificateRequestId)
         {
-            Data.Models.CertificateRequest request = _certificateRequestService.Get(certificateRequestId);
+            Data.Models.CertificateRequest request = _certificateRequestRepository.Read(certificateRequestId);
             request.State = CertificateRequestState.REJECTED;
-            _certificateRequestService.Update(request);
+            _certificateRequestRepository.Update(request);
         }
         
         public Certificate SaveCertificate(Certificate certificate)
@@ -123,6 +123,10 @@ namespace CertificatesWebApp.Users.Services
             string uid = string.Concat("UID=", user.Id);
             return string.Concat(common_name, ";", givenname, ";"/*,surname, ";"*/, email, ";", telephone, ";", uid, ";", attributes);
 
+        }
+
+        public Certificate GetBySerialNumber(String serialNumber) { 
+            return _certificateRepository.FindBySerialNumber(serialNumber).Result;
         }
     }
 }

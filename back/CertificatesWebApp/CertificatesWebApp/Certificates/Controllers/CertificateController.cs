@@ -1,5 +1,9 @@
 ﻿using CertificatesWebApp.Users.Services;
+using Data.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -8,24 +12,86 @@ namespace CertificatesWebApp.Certificates.Controllers
     public class CertificateController : ControllerBase
     {
         private readonly ICertificateService _certificateService;
-        public CertificateController(ICertificateService certificateService)
+        private readonly ICertificateRequestService _certificateRequestService;
+        private readonly IUserService _userService;
+        public CertificateController(ICertificateService certificateService, ICertificateRequestService certificateRequestService, IUserService userService)
         {
             _certificateService = certificateService;
-        }
-        [HttpPost]
-        [Route("accept/{certificateRequestId}")]
-        public ActionResult<Boolean> AcceptCertificate(Guid certificateRequestId)
-        {
-            _certificateService.AcceptCertificate(certificateRequestId);
-            return Ok(true);
+            _certificateRequestService = certificateRequestService;
+            _userService = userService;
         }
 
         [HttpPost]
-        [Route("decline/{certificateRequestId}")]
-        public ActionResult<Boolean> DeclineCertificate(Guid certificateRequestId)
+        [Authorize]
+        [Route("accept/{certificateRequestId}")]
+        public async Task<ActionResult<String>> AcceptCertificateAsync(Guid certificateRequestId)
         {
-            _certificateService.DeclineCertificate(certificateRequestId);
-            return Ok(true);
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String role = identity.FindFirst(ClaimTypes.Role).Value;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                    checkUserPermission(userId, role, certificateRequestId);
+                    _certificateService.AcceptCertificate(certificateRequestId);
+
+                    return Ok("Certificate accepted successfully!");
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+            }
+            else
+            {
+                return BadRequest("Authentication error!");
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("decline/{certificateRequestId}")]
+        public async Task<ActionResult<string>> DeclineCertificateAsync(Guid certificateRequestId)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String role = identity.FindFirst(ClaimTypes.Role).Value;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                    checkUserPermission(userId, role, certificateRequestId);
+                    _certificateService.DeclineCertificate(certificateRequestId);
+
+                    return Ok("Certificate declined successfully!");
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+            }
+            else
+            {
+                return BadRequest("Authentication error!");
+            }
+        }
+
+        private void checkUserPermission(String userId, String role, Guid certificateRequestId) {
+
+            CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);
+            User issuer = null;
+            if (request.ParentSerialNumber != "")
+                issuer = _userService.Get(_certificateService.GetBySerialNumber(request.ParentSerialNumber).OwnerId);
+
+            if ((issuer == null && role != "Admin") || (issuer != null && issuer.Id != Guid.Parse(userId)))
+            {
+                throw new Exception("You don't have permission!");
+            }
         }
 
     }

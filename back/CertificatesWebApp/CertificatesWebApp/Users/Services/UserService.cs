@@ -16,15 +16,15 @@ namespace CertificatesWebApp.Users.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfirmationRepository _confirmationRepository;
-        private readonly ICredentialsService _credentialsService;
+        private readonly ICredentialsRepository _credentialsRepository;
         private readonly IMailService _mailService;
 
-        public UserService(IUserRepository userRepository, ICredentialsService credentialsService,
+        public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
             IConfirmationRepository confirmationRepository, IMailService mailService)
         {
             _userRepository = userRepository;
             _confirmationRepository = confirmationRepository;
-            _credentialsService = credentialsService;
+            _credentialsRepository = credentialsRepository;
             _mailService = mailService;
         }
 
@@ -59,7 +59,7 @@ namespace CertificatesWebApp.Users.Services
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password, credentials.Salt);
             credentials.User = user;
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
-            _credentialsService.CreateCredentials(credentials);
+            _credentialsRepository.Create(credentials);
 
             _mailService.SendActivationMail(user, confirmation.Code);
 
