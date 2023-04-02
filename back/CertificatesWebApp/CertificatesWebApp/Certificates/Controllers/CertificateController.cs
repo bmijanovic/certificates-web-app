@@ -24,7 +24,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpPost]
         [Authorize]
         [Route("accept/{certificateRequestId}")]
-        public async Task<ActionResult<bool>> AcceptCertificateAsync(Guid certificateRequestId)
+        public async Task<ActionResult<String>> AcceptCertificateAsync(Guid certificateRequestId)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
@@ -35,17 +35,10 @@ namespace CertificatesWebApp.Certificates.Controllers
                     String role = identity.FindFirst(ClaimTypes.Role).Value;
                     String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                    CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);
-                    User issuer = null;
-                    if (request.ParentSerialNumber != "")
-                        issuer = _userService.Get(_certificateService.GetBySerialNumber(request.ParentSerialNumber).OwnerId);
-
-                    if ((issuer == null && role != "Admin") || (issuer != null && issuer.Id != Guid.Parse(userId))) {
-                        throw new Exception("You don't have permission!");
-                    }
-
+                    checkUserPermission(userId, role, certificateRequestId);
                     _certificateService.AcceptCertificate(certificateRequestId);
-                    return Ok("Certificate accepted!");
+
+                    return Ok("Certificate accepted successfully!");
                 }
                 catch (Exception e)
                 {
@@ -54,17 +47,51 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
             else
             {
-                return BadRequest("Cookie error");
+                return BadRequest("Authentication error!");
             }
         }
 
         [HttpPost]
         [Authorize]
         [Route("decline/{certificateRequestId}")]
-        public ActionResult<Boolean> DeclineCertificate(Guid certificateRequestId)
+        public async Task<ActionResult<string>> DeclineCertificateAsync(Guid certificateRequestId)
         {
-            _certificateService.DeclineCertificate(certificateRequestId);
-            return Ok(true);
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String role = identity.FindFirst(ClaimTypes.Role).Value;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                    checkUserPermission(userId, role, certificateRequestId);
+                    _certificateService.DeclineCertificate(certificateRequestId);
+
+                    return Ok("Certificate declined successfully!");
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+            }
+            else
+            {
+                return BadRequest("Authentication error!");
+            }
+        }
+
+        private void checkUserPermission(String userId, String role, Guid certificateRequestId) {
+
+            CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);
+            User issuer = null;
+            if (request.ParentSerialNumber != "")
+                issuer = _userService.Get(_certificateService.GetBySerialNumber(request.ParentSerialNumber).OwnerId);
+
+            if ((issuer == null && role != "Admin") || (issuer != null && issuer.Id != Guid.Parse(userId)))
+            {
+                throw new Exception("You don't have permission!");
+            }
         }
 
     }

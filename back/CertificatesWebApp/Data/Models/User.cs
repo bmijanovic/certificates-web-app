@@ -30,14 +30,13 @@ namespace Data.Models
 
         [Column("activated")]
         public Boolean IsActivated { get; set; }
-        public List<Certificate> Certificates { get; set; }
         public string Discriminator { get; private set; }
 
         public User()
         {
         }
 
-        public User(Guid id, string name, string surname, string telephone, string email, bool isActivated, List<Certificate> certificates)
+        public User(Guid id, string name, string surname, string telephone, string email, bool isActivated)
         {
             Id = id;
             Name = name;
@@ -45,7 +44,6 @@ namespace Data.Models
             Telephone = telephone;
             Email = email;
             IsActivated = isActivated;
-            Certificates = certificates;
         }
     }
 }

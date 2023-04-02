@@ -1,9 +1,6 @@
 ﻿using CertificatesWebApp.Certificates.Repositories;
 using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Certificates.DTOs;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using CertificatesWebApp.Users.Repositories;
 using Data.Models;
 
 namespace CertificatesWebApp.Users.Services
@@ -17,14 +14,14 @@ namespace CertificatesWebApp.Users.Services
     public class CertificateRequestService : ICertificateRequestService
     {
         private readonly ICertificateRequestRepository _certificateRequestRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IAdminRepository _adminRepository;
         private readonly ICertificateRepository _certificateRepository;
         private readonly ICertificateService _certificateService;
 
-        public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository, ICertificateService certificateService)
+        public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository, ICertificateService certificateService, 
+            ICertificateRepository certificateRepository)
         {
             _certificateRequestRepository = certificateRequestRepository;
+            _certificateRepository = certificateRepository;
             _certificateService = certificateService;
         }
 
