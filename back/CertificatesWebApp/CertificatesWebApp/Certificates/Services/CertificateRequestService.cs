@@ -46,19 +46,14 @@ namespace CertificatesWebApp.Users.Services
             {
                 throw new Exception("Certificate does not exist!");
             }
+
             if (DateTime.UtcNow > endDate)
                 return false;
-            if (!certificate.IsValid)
+
+            if (!_certificateService.IsValid(serialNumber)) {
                 return false;
-            else 
-            {
-                if(DateTime.Now > certificate.EndDate)
-                {
-                    certificate.IsValid = false;
-                    _certificateRepository.Update(certificate);
-                    return false;
-                }
             }
+
             if (certificate.EndDate < endDate)
                 return false;
             return true;

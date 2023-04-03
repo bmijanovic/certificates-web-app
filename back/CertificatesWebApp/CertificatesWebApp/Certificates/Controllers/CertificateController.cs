@@ -47,7 +47,7 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
             else
             {
-                return BadRequest("Authentication error!");
+                return Forbid("Authentication error!");
             }
         }
 
@@ -77,7 +77,26 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
             else
             {
-                return BadRequest("Authentication error!");
+                return Forbid("Authentication error!");
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("checkValidity/{serialNumber}")]
+        public ActionResult<Boolean> CheckValidityCertificate(String serialNumber)
+        {
+            try
+            {
+                if (_certificateService.IsValid(serialNumber)) {
+
+                    return Ok(true);
+                }
+                return Ok(false);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
             }
         }
 
