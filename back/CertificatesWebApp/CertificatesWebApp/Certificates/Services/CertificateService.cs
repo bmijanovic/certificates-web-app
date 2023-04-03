@@ -13,6 +13,7 @@ namespace CertificatesWebApp.Users.Services
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
+        Boolean IsValid(String serialNumber);
         public IEnumerable<Certificate> GetAll();
     }
     public class CertificateService : ICertificateService
@@ -133,6 +134,19 @@ namespace CertificatesWebApp.Users.Services
 
         public Certificate GetBySerialNumber(String serialNumber) { 
             return _certificateRepository.FindBySerialNumber(serialNumber).Result;
+        }
+
+        public Boolean IsValid(String serialNumber) {
+            Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
+            if (!certificate.IsValid)
+                return false;
+            if (DateTime.Now > certificate.EndDate)
+            {
+                certificate.IsValid = false;
+                _certificateRepository.Update(certificate);
+                return false;
+            }
+            return true;
         }
     }
 }

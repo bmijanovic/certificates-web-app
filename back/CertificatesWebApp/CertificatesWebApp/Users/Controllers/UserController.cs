@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace CertificatesWebApp.Users.Controllers
@@ -24,7 +25,7 @@ namespace CertificatesWebApp.Users.Controllers
             _confirmationService = confirmationService;
         }
 
-        [HttpPost(Name = "Register")]
+        [HttpPost]
         public ActionResult<UserDTO> register(UserDTO userDTO)
         {
             try
@@ -42,7 +43,7 @@ namespace CertificatesWebApp.Users.Controllers
             }
         }
 
-        [HttpPost(Name = "Login")]
+        [HttpPost]
         public ActionResult<String> login(CredentialsDTO credentialsDTO)
         {
             try
@@ -64,7 +65,7 @@ namespace CertificatesWebApp.Users.Controllers
             }
         }
 
-        [HttpPost(Name = "Logout")]
+        [HttpPost]
         public ActionResult<String> logout()
         {
             try
@@ -78,7 +79,8 @@ namespace CertificatesWebApp.Users.Controllers
             }
         }
 
-        [HttpPost(Name = "ActivateAccount")]
+        [HttpPost]
+        [Route("{code}")]
         public ActionResult<String> activateAccount(String code){
             try {
                 _confirmationService.ActivateAccount(code);
