@@ -9,7 +9,7 @@ namespace CertificatesWebApp.Users.Services
     public interface ICertificateService : IService<Certificate>
     {
         void AcceptCertificate(Guid certificateRequestId);
-        void DeclineCertificate(Guid certificateRequestId);
+        void DeclineCertificate(Guid certificateRequestId, string rejectionReason);
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
@@ -41,7 +41,7 @@ namespace CertificatesWebApp.Users.Services
             string algorithm = request.HashAlgorithm;
             CertificateType cType = request.Type;
             string flagsInput = request.Flags;
-            string attributes = request.SubjectText;
+            string attributes = generateAttributes(user,request.SubjectText);
             X509KeyUsageFlags flags = getFlags(flagsInput);
             using (var rsa = RSA.Create(4096))
             {
@@ -52,7 +52,8 @@ namespace CertificatesWebApp.Users.Services
                 X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
 
-
+                validateCertificate(request.ParentSerialNumber, user);
+                IsValid(request.ParentSerialNumber);
                 if (cType == CertificateType.ROOT)
                 {
                     caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
@@ -70,16 +71,19 @@ namespace CertificatesWebApp.Users.Services
                     
                X509Certificate2UI.DisplayCertificate(caCertificate);
 
+               
+
                request.State = CertificateRequestState.ACCEPTED;
                 _certificateRequestRepository.Update(request);
             }
 
         }
 
-        public void DeclineCertificate(Guid certificateRequestId)
+        public void DeclineCertificate(Guid certificateRequestId, string rejectionReason)
         {
             Data.Models.CertificateRequest request = _certificateRequestRepository.Read(certificateRequestId);
             request.State = CertificateRequestState.REJECTED;
+            request.RejectionReason = rejectionReason;
             _certificateRequestRepository.Update(request);
         }
         
@@ -123,12 +127,9 @@ namespace CertificatesWebApp.Users.Services
         private String generateAttributes(User user, string attributes)
         {
             string common_name = string.Concat("CN=", user.Name, " ", user.Surname);
-            string givenname = string.Concat("GIVENNAME=", user.Name);
-            //string surname = string.Concat("SURNAME=", user.Surname);
             string email = string.Concat("E=", user.Email);
-            string telephone = string.Concat("TEL=", user.Telephone);
-            string uid = string.Concat("UID=", user.Id);
-            return string.Concat(common_name, ";", givenname, ";"/*,surname, ";"*/, email, ";", telephone, ";", uid, ";", attributes);
+            string telephone = string.Concat("T=", user.Telephone);
+            return string.Concat(common_name, ";", email, ";", telephone, ";", attributes);
 
         }
 
@@ -137,6 +138,8 @@ namespace CertificatesWebApp.Users.Services
         }
 
         public Boolean IsValid(String serialNumber) {
+            if (string.IsNullOrEmpty(serialNumber))
+                return false;
             Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
             if (!certificate.IsValid)
                 return false;
@@ -147,6 +150,20 @@ namespace CertificatesWebApp.Users.Services
                 return false;
             }
             return true;
+        }
+
+        private void validateCertificate(string issuerSN,User user)
+        { 
+            Certificate issuerCertificateInfo;
+            if (!string.IsNullOrEmpty(issuerSN))
+            {
+                issuerCertificateInfo = _certificateRepository.FindBySerialNumber(issuerSN).Result;
+                X509Certificate2 certificate = new X509Certificate2($"Certs/{issuerSN}.crt");
+                using(RSA rsa = RSA.Create()) {
+                    rsa.ImportRSAPrivateKey(File.ReadAllBytes($"Keys/{issuerSN}.key"),out _);
+                    certificate.CopyWithPrivateKey(rsa);
+                }
+            }
         }
     }
 }
