@@ -14,6 +14,7 @@ namespace CertificatesWebApp.Users.Services
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
         Boolean IsValid(String serialNumber);
+        public IEnumerable<Certificate> GetAll();
     }
     public class CertificateService : ICertificateService
     {
@@ -97,6 +98,11 @@ namespace CertificatesWebApp.Users.Services
 
             System.IO.File.WriteAllBytes(keyFilename, keyBytes);
             System.IO.File.WriteAllBytes(filename, certificateBytes);
+        }
+
+        public IEnumerable<Certificate> GetAll() 
+        {
+            return _certificateRepository.ReadAll();
         }
 
         private X509KeyUsageFlags getFlags(string exponents)

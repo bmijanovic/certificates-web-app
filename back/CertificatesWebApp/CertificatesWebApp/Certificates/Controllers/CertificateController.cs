@@ -100,8 +100,16 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
         }
 
-        private void checkUserPermission(String userId, String role, Guid certificateRequestId) {
+        [HttpPost]
+        [Authorize]
+        [Route("")]
+        public async Task<ActionResult<List<Certificate>>> GetAll()
+        {
+            return _certificateService.GetAll().ToList();
+        }
 
+        private void checkUserPermission(String userId, String role, Guid certificateRequestId) 
+        {
             CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);
             User issuer = null;
             if (request.ParentSerialNumber != "")
