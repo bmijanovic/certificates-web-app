@@ -27,8 +27,10 @@ namespace CertificatesWebApp.Users.Services
 
         public async Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto)
         {
+            checkDto(dto);
+            // ako je root ne moramo da proveravamo validnost parenta
             if (dto.Type != CertificateType.ROOT && !(await checkValidity(dto.EndDate, dto.ParentSerialNumber)))
-                return;
+                throw new Exception("Invalid certificate request!");
             if(role == "Admin")
             {
                 adminMakesRequests(userId, dto);
@@ -39,6 +41,18 @@ namespace CertificatesWebApp.Users.Services
             }
         }
 
+        private void checkDto(CertificateRequestDTO dto)
+        {
+            if (dto.EndDate < DateTime.Now)
+                throw new Exception("Cannot make certificate for past!");
+            if (dto.Type == CertificateType.ROOT && !dto.ParentSerialNumber.Equals(""))
+                throw new Exception("Cannot make root certificate based on other certificate!");
+            if (dto.Type != CertificateType.ROOT && dto.ParentSerialNumber.Equals(""))
+                throw new Exception("Cannot make certificate on its own!");
+            if (dto.Type == CertificateType.END && dto.Flags.Contains("4"))
+                throw new Exception("End certificate cannot have this permissions!");
+        }
+
         private async Task<Boolean> checkValidity(DateTime endDate, String serialNumber)
         {
             Certificate certificate = await _certificateRepository.FindBySerialNumber(serialNumber);
@@ -46,6 +60,9 @@ namespace CertificatesWebApp.Users.Services
             {
                 throw new Exception("Certificate does not exist!");
             }
+
+            if (certificate.Type == CertificateType.END)
+                return false;
 
             if (DateTime.UtcNow > endDate)
                 return false;
@@ -101,7 +118,11 @@ namespace CertificatesWebApp.Users.Services
             certificateRequest.State = CertificateRequestState.IN_PROGRESS;
             certificateRequest.Type = dto.Type;
             certificateRequest.ParentSerialNumber = dto.Type != CertificateType.ROOT ? dto.ParentSerialNumber : "";
-            certificateRequest.SubjectText = $"O={dto.O};OU={dto.OU};C={dto.C}";
+            certificateRequest.SubjectText = "";
+            if (!dto.O.Equals("")) certificateRequest.SubjectText += $"O={dto.O};";
+            if (!dto.OU.Equals("")) certificateRequest.SubjectText += $"OU={dto.OU};";
+            if (!dto.C.Equals("")) certificateRequest.SubjectText += $"C={dto.C};";
+            Console.Write(certificateRequest.SubjectText);
             certificateRequest.EndDate = dto.EndDate;
             certificateRequest.Flags = dto.Flags;
             certificateRequest.HashAlgorithm = dto.HashAlgorithm;
