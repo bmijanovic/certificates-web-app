@@ -43,6 +43,31 @@ namespace CertificatesWebApp.Certificates.Controllers
                 return BadRequest("Cookie error");
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<List<GetCertificateRequestDTO>>> GetRequestsForUser()
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                try
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
+                    return Ok(requests);
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(e.Message);
+                }
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
+        }
     }
 }
 
