@@ -31,14 +31,12 @@ namespace CertificatesWebApp.Certificates.Controllers
                     String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
                     await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
-                    Console.WriteLine(role);
-                    //ako se throwuje exception sve jedno vrati OK zbog await
-                    return Ok("Certificate request created successfully!");
                 }
                 catch (Exception e)
                 {
                     return BadRequest(e.Message);
                 }
+                return Ok("Certificate request created successfully!");
             }
             else
             {

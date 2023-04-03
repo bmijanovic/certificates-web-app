@@ -49,7 +49,7 @@ namespace CertificatesWebApp.Users.Services
                 certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType==CertificateType.END), false, 0, true));
                 certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(flags, false));
 
-                X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
+                //X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
 
 
@@ -61,9 +61,16 @@ namespace CertificatesWebApp.Users.Services
                 }
                 else
                 {
+                    X509Certificate2 issuerCertificate = new X509Certificate2($"Certs/{request.ParentSerialNumber}.crt");
+                    using (RSA rsa_parent = RSA.Create())
+                    {
+                        rsa_parent.ImportRSAPrivateKey(File.ReadAllBytes($"Keys/{request.ParentSerialNumber}.key"), out _);
+                        issuerCertificate = issuerCertificate.CopyWithPrivateKey(rsa_parent);
+                    }
+
                     Span<byte> serialNumber = stackalloc byte[8];
                     RandomNumberGenerator.Fill(serialNumber);
-                    caCertificate = certificateRequest.Create(tempCert, DateTimeOffset.Now.Date, expDate, serialNumber);
+                    caCertificate = certificateRequest.Create(issuerCertificate, DateTimeOffset.Now.Date, expDate, serialNumber);
                     SaveCertificateToFileSystem(caCertificate, rsa);
                     SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm));
                 }
