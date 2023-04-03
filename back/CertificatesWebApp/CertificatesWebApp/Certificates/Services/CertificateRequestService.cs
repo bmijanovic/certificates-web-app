@@ -101,7 +101,11 @@ namespace CertificatesWebApp.Users.Services
             certificateRequest.State = CertificateRequestState.IN_PROGRESS;
             certificateRequest.Type = dto.Type;
             certificateRequest.ParentSerialNumber = dto.Type != CertificateType.ROOT ? dto.ParentSerialNumber : "";
-            certificateRequest.SubjectText = $"O={dto.O};OU={dto.OU};C={dto.C}";
+            certificateRequest.SubjectText = "";
+            if (!dto.O.Equals("")) certificateRequest.SubjectText += $"O={dto.O};";
+            if (!dto.OU.Equals("")) certificateRequest.SubjectText += $"OU={dto.OU};";
+            if (!dto.C.Equals("")) certificateRequest.SubjectText += $"C={dto.C};";
+            Console.Write(certificateRequest.SubjectText);
             certificateRequest.EndDate = dto.EndDate;
             certificateRequest.Flags = dto.Flags;
             certificateRequest.HashAlgorithm = dto.HashAlgorithm;
