@@ -26,12 +26,14 @@ namespace Data.Context
         public CertificatesWebAppContext(IConfiguration configuration)
         {
             Configuration = configuration;
+
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connect to sqlite database
-            options.UseSqlite(Configuration.GetConnectionString("WebApiDatabase"));
+            //options.(Configuration.GetConnectionString("WebApiDatabase"));
+            options.UseSqlServer(Configuration.GetConnectionString("WebApiDatabase"));
         }
 
 
