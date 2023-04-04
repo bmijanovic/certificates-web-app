@@ -29,22 +29,15 @@ namespace CertificatesWebApp.Certificates.Controllers
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
-            {
-                try
-                {
-                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                    String role = identity.FindFirst(ClaimTypes.Role).Value;
-                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            { 
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String role = identity.FindFirst(ClaimTypes.Role).Value;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                    checkUserPermission(userId, role, certificateRequestId);
-                    _certificateService.AcceptCertificate(certificateRequestId);
+                checkUserPermission(userId, role, certificateRequestId);
+                _certificateService.AcceptCertificate(certificateRequestId);
 
-                    return Ok("Certificate accepted successfully!");
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
+                return Ok("Certificate accepted successfully!");
             }
             else
             {
@@ -60,21 +53,15 @@ namespace CertificatesWebApp.Certificates.Controllers
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
             {
-                try
-                {
-                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                    String role = identity.FindFirst(ClaimTypes.Role).Value;
-                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String role = identity.FindFirst(ClaimTypes.Role).Value;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                    checkUserPermission(userId, role, certificateRequestId);
-                    _certificateService.DeclineCertificate(certificateRequestId,dto.Message);
+                checkUserPermission(userId, role, certificateRequestId);
+                _certificateService.DeclineCertificate(certificateRequestId,dto.Message);
 
-                    return Ok("Certificate declined successfully!");
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
+                return Ok("Certificate declined successfully!");
+               
             }
             else
             {
@@ -87,18 +74,11 @@ namespace CertificatesWebApp.Certificates.Controllers
         [Route("checkValidity/{serialNumber}")]
         public ActionResult<Boolean> CheckValidityCertificate(String serialNumber)
         {
-            try
-            {
-                if (_certificateService.IsValid(serialNumber)) {
+            if (_certificateService.IsValid(serialNumber)) {
 
-                    return Ok(true);
-                }
-                return Ok(false);
+                return Ok(true);
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            return Ok(false);
         }
 
         [HttpGet]

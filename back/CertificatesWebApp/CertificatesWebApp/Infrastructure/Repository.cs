@@ -36,8 +36,16 @@ namespace CertificatesWebApp.Infrastructure
 
         public virtual T Create(T entity)
         {
-            _entities.Add(entity);
-            _context.SaveChanges();
+            try
+            {
+                _entities.Add(entity);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            
 
             return entity;
         }

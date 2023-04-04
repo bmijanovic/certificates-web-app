@@ -46,23 +46,30 @@ namespace CertificatesWebApp.Users.Controllers
         [HttpPost]
         public ActionResult<String> login(CredentialsDTO credentialsDTO)
         {
-            try
-            {
-                User user = _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
-                ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
-                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            //try
+            //{
+            //    User user = _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
+            //    ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            //    identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
+            //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            //    HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-                return Ok("Logged in successfully!");
-            }
-            catch (BadCredentialsException e) {
-                return BadRequest(e.Message);
-            }
-            catch (UserNotActivatedException e)
-            {
-                return BadRequest(e.Message);
-            }
+            //    return Ok("Logged in successfully!");
+            //}
+            //catch (BadCredentialsException e) {
+            //    return BadRequest(e.Message);
+            //}
+            //catch (UserNotActivatedException e)
+            //{
+            //    return BadRequest(e.Message);
+            //}
+            User user = _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
+            ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            return Ok("Logged in successfully!");
         }
 
         [HttpPost]

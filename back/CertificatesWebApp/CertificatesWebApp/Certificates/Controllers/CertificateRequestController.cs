@@ -24,18 +24,12 @@ namespace CertificatesWebApp.Certificates.Controllers
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
             {
-                try
-                {
-                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                    String role = identity.FindFirst(ClaimTypes.Role).Value;
-                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String role = identity.FindFirst(ClaimTypes.Role).Value;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                    await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
+                await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
+                
                 return Ok("Certificate request created successfully!");
             }
             else
@@ -51,17 +45,10 @@ namespace CertificatesWebApp.Certificates.Controllers
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
             {
-                try
-                {
-                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-                    List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
-                    return Ok(requests);
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e.Message);
-                }
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
+                return Ok(requests);
             }
             else
             {
