@@ -1,4 +1,5 @@
-﻿using CertificatesWebApp.Users.Services;
+﻿using CertificatesWebApp.Certificates.DTOs;
+using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -54,7 +55,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpPost]
         [Authorize]
         [Route("decline/{certificateRequestId}")]
-        public async Task<ActionResult<string>> DeclineCertificateAsync(Guid certificateRequestId)
+        public async Task<ActionResult<string>> DeclineCertificateAsync(Guid certificateRequestId, [FromBody] MessageDTO dto)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
@@ -66,7 +67,7 @@ namespace CertificatesWebApp.Certificates.Controllers
                     String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
                     checkUserPermission(userId, role, certificateRequestId);
-                    _certificateService.DeclineCertificate(certificateRequestId);
+                    _certificateService.DeclineCertificate(certificateRequestId,dto.Message);
 
                     return Ok("Certificate declined successfully!");
                 }
@@ -100,7 +101,7 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpGet]
         [Authorize]
         [Route("")]
         public async Task<ActionResult<List<Certificate>>> GetAll()
