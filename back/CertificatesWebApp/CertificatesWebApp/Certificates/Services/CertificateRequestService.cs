@@ -1,4 +1,4 @@
-﻿using CertificatesWebApp.Certificates.Repositories;
+﻿ using CertificatesWebApp.Certificates.Repositories;
 using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Certificates.DTOs;
 using Data.Models;
@@ -49,8 +49,10 @@ namespace CertificatesWebApp.Users.Services
                 throw new Exception("Cannot make root certificate based on other certificate!");
             if (dto.Type != CertificateType.ROOT && dto.ParentSerialNumber.Equals(""))
                 throw new Exception("Cannot make certificate on its own!");
-            if (dto.Type == CertificateType.END && dto.Flags.Contains("4"))
+            if (dto.Type == CertificateType.END && dto.Flags.Contains("2"))
                 throw new Exception("End certificate cannot have this permissions!");
+            if (dto.Type != CertificateType.END && !dto.Flags.Contains("2"))
+                throw new Exception("This type of certificates must include 4th flag");
         }
 
         private async Task<Boolean> checkValidity(DateTime endDate, String serialNumber)
