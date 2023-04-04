@@ -118,7 +118,6 @@ namespace CertificatesWebApp.Users.Services
 
         private X509KeyUsageFlags getFlags(string exponents)
         {
-
             if (exponents.Length == 0)
                 return X509KeyUsageFlags.None;
             X509KeyUsageFlags flag = X509KeyUsageFlags.None;
@@ -148,7 +147,7 @@ namespace CertificatesWebApp.Users.Services
             if (string.IsNullOrEmpty(serialNumber))
                 return false;
             Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
-            if (!certificate.IsValid)
+            if (certificate == null || !certificate.IsValid)
                 return false;
             if (DateTime.Now > certificate.EndDate)
             {

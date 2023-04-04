@@ -97,7 +97,7 @@ namespace CertificatesWebApp.Users.Services
             }
             else
             {
-                saveRequest(userId, dto);
+                _ = saveRequest(userId, dto);
             }
 
         }
