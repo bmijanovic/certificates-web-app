@@ -1,4 +1,4 @@
-﻿using CertificatesWebApp.Certificates.Repositories;
+﻿ using CertificatesWebApp.Certificates.Repositories;
 using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Certificates.DTOs;
 using Data.Models;
@@ -30,7 +30,7 @@ namespace CertificatesWebApp.Users.Services
             checkDto(dto);
             // ako je root ne moramo da proveravamo validnost parenta
             if (dto.Type != CertificateType.ROOT && !(await checkValidity(dto.EndDate, dto.ParentSerialNumber)))
-                throw new Exception("Invalid certificate request!");
+                throw new ArgumentException("Invalid certificate request!");
             if(role == "Admin")
             {
                 adminMakesRequests(userId, dto);
@@ -44,13 +44,15 @@ namespace CertificatesWebApp.Users.Services
         private void checkDto(CertificateRequestDTO dto)
         {
             if (dto.EndDate < DateTime.Now)
-                throw new Exception("Cannot make certificate for past!");
+                throw new ArgumentException("Cannot make certificate for past!");
             if (dto.Type == CertificateType.ROOT && !dto.ParentSerialNumber.Equals(""))
-                throw new Exception("Cannot make root certificate based on other certificate!");
+                throw new ArgumentException("Cannot make root certificate based on other certificate!");
             if (dto.Type != CertificateType.ROOT && dto.ParentSerialNumber.Equals(""))
-                throw new Exception("Cannot make certificate on its own!");
-            if (dto.Type == CertificateType.END && dto.Flags.Contains("4"))
-                throw new Exception("End certificate cannot have this permissions!");
+                throw new ArgumentException("Cannot make certificate on its own!");
+            if (dto.Type == CertificateType.END && dto.Flags.Contains("2"))
+                throw new ArgumentException("End certificate cannot have this permissions!");
+            if (dto.Type != CertificateType.END && !dto.Flags.Contains("2"))
+                throw new ArgumentException("This type of certificates must include 4th flag");
         }
 
         private async Task<Boolean> checkValidity(DateTime endDate, String serialNumber)
@@ -58,7 +60,7 @@ namespace CertificatesWebApp.Users.Services
             Certificate certificate = await _certificateRepository.FindBySerialNumber(serialNumber);
             if(certificate == null)
             {
-                throw new Exception("Certificate does not exist!");
+                throw new KeyNotFoundException("Certificate does not exist!");
             }
 
             if (certificate.Type == CertificateType.END)
@@ -86,7 +88,7 @@ namespace CertificatesWebApp.Users.Services
         {
             if(dto.Type == CertificateType.ROOT)
             {
-                throw new Exception("You do not have permission to make root certificates!");
+                throw new ArgumentException("You do not have permission to make root certificates!");
             }
             if(await amIOwner(userId, dto.ParentSerialNumber))
             {
@@ -95,7 +97,7 @@ namespace CertificatesWebApp.Users.Services
             }
             else
             {
-                saveRequest(userId, dto);
+                _ = saveRequest(userId, dto);
             }
 
         }
@@ -105,7 +107,7 @@ namespace CertificatesWebApp.Users.Services
             Certificate parentCertificate = await _certificateRepository.FindBySerialNumber(serialNumber);
             if(parentCertificate == null)
             {
-                throw new Exception("Certificate does not exist!");
+                throw new ArgumentException("Certificate does not exist!");
             }
             return userId == parentCertificate.OwnerId;
         }

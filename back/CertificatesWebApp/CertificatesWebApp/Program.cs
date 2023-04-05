@@ -3,6 +3,7 @@ using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
+using CertificatesWebApp.Utils;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -24,6 +25,7 @@ builder.Services.AddTransient<ICertificateRequestRepository, CertificateRequestR
 builder.Services.AddTransient<IConfirmationRepository, ConfirmationRepository>();
 builder.Services.AddTransient<ICredentialsRepository, CredentialsRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+
 
 //Services
 builder.Services.AddTransient<IAdminService, AdminService>();
@@ -69,6 +71,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionMiddleware>(false);
 
 app.UseHttpsRedirection();
 
