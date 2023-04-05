@@ -1,6 +1,5 @@
 ﻿using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
-using CertificatesWebApp.Users.Exceptions;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
 
@@ -8,9 +7,9 @@ namespace CertificatesWebApp.Users.Services
 {
     public interface IUserService : IService<User>
     {
-        User CreateUser(UserDTO userDTO);
-        User UpdateUser(User user);
+        Task<User> CreateUser(UserDTO userDTO);
         User Get(Guid userId);
+        Task SendPasswordResetMail(String userEmail);
     }
     public class UserService : IUserService
     {
@@ -28,15 +27,15 @@ namespace CertificatesWebApp.Users.Services
             _mailService = mailService;
         }
 
-        public User CreateUser(UserDTO userDTO)
+        public async Task<User> CreateUser(UserDTO userDTO)
         {
-            if (_userRepository.findByEmail(userDTO.Email) != null)
+            if (await _userRepository.FindByEmail(userDTO.Email) != null)
             {
-                throw new EmailException("User with that email already exists!");
+                throw new ArgumentException("User with that email already exists!");
             }
-            else if (_userRepository.findByTelephone(userDTO.Telephone) != null)
+            else if (await _userRepository.FindByTelephone(userDTO.Telephone) != null)
             {
-                throw new TelephoneException("User with that telephone already exists!");
+                throw new ArgumentException("User with that telephone already exists!");
             }
 
             User user = new User();
@@ -61,13 +60,28 @@ namespace CertificatesWebApp.Users.Services
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
             _credentialsRepository.Create(credentials);
 
-            _mailService.SendActivationMail(user, confirmation.Code);
+            await _mailService.SendActivationMail(user, confirmation.Code);
 
             return user;
         }
 
-        public User UpdateUser(User user) { 
-            return _userRepository.Update(user);
+        public async Task SendPasswordResetMail(String userEmail) { 
+            User user = await _userRepository.FindByEmail(userEmail);
+            if (user == null)
+            {
+                throw new ArgumentException("User does not exist!");
+            }
+            else {
+                Confirmation confirmation = new Confirmation();
+                confirmation.ConfirmationType = ConfirmationType.RESET_PASSWORD;
+                confirmation.Code = Math.Abs(user.Email.GetHashCode() + DateTime.Now.GetHashCode()).ToString();
+                confirmation.ExpirationDate = DateTime.Now.AddDays(1);
+                confirmation.User = user;
+                _confirmationRepository.Create(confirmation);
+
+                _mailService.SendPasswordResetMail(user, confirmation.Code);
+            }
+
         }
 
         public User Get(Guid userId)

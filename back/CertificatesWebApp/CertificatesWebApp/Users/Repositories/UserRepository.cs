@@ -1,13 +1,14 @@
 ﻿using CertificatesWebApp.Infrastructure;
 using Data.Context;
 using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CertificatesWebApp.Users.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
-        User findByEmail(String email);
-        User findByTelephone(String telephone);
+        Task<User> FindByEmail(String email);
+        Task<User> FindByTelephone(String telephone);
     }
     public class UserRepository : Repository<User>, IUserRepository
     {
@@ -15,13 +16,13 @@ namespace CertificatesWebApp.Users.Repositories
         {
 
         }
-        public User findByEmail(String email)
+        public async Task<User> FindByEmail(String email)
         {
-            return _entities.FirstOrDefault(e => e.Email.Equals(email));
+            return await _entities.FirstOrDefaultAsync(e => e.Email.Equals(email));
         }
 
-        public User findByTelephone(String telephone) {
-            return _entities.FirstOrDefault(e => e.Telephone.Equals(telephone));
+        public async Task<User> FindByTelephone(String telephone) {
+            return await _entities.FirstOrDefaultAsync(e => e.Telephone.Equals(telephone));
         }
     }
 }
