@@ -8,6 +8,7 @@ namespace CertificatesWebApp.Users.Services
     public interface IMailService
     {
         public Task SendActivationMail(User user, String code);
+        public Task SendPasswordResetMail(User user, String code);
        
     }
 
@@ -34,5 +35,23 @@ namespace CertificatesWebApp.Users.Services
             Response response = await client.SendEmailAsync(msg);
         }
 
+        public async Task SendPasswordResetMail(User user, String code) {
+            StreamReader sr = new StreamReader("sendgrid_api_key.txt");
+            String sendgridApiKey = sr.ReadLine();
+            SendGridClient client = new SendGridClient(sendgridApiKey);
+            SendGridMessage msg = new SendGridMessage();
+            msg.SetFrom(new EmailAddress("certificateswebapp@gmail.com", "Certificates Web app"));
+            msg.AddTo(new EmailAddress(user.Email, user.Name + " " + user.Surname));
+            msg.SetTemplateId("d-3527be23b08d4f0582cd87fe0a00314e");
+
+            var dynamicTemplateData = new
+            {
+                url_page = "https://localhost:7018/api/User/resetPassword" + "?code=" + code,
+                user_name = user.Name
+            };
+
+            msg.SetTemplateData(dynamicTemplateData);
+            Response response = await client.SendEmailAsync(msg);
+        }
     }
 }

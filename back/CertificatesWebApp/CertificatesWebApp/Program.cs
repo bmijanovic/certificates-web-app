@@ -3,7 +3,6 @@ using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
-using CertificatesWebApp.Utils;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
 

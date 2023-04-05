@@ -7,7 +7,7 @@ namespace CertificatesWebApp.Users.Repositories
 {
     public interface ICredentialsRepository : IRepository<Credentials>
     {
-        Credentials findCredentials(String email);
+        Task<Credentials> FindByEmail(String email);
     }
     public class CredentialsRepository : Repository<Credentials>, ICredentialsRepository
     {
@@ -16,8 +16,8 @@ namespace CertificatesWebApp.Users.Repositories
 
         }
 
-        public Credentials findCredentials(String email) {
-            return _entities.Include(e => e.User).FirstOrDefault(e => e.User.Email == email);
+        public async Task<Credentials> FindByEmail(String email) {
+            return await _entities.Include(e => e.User).FirstOrDefaultAsync(e => e.User.Email == email);
 
         }
     }

@@ -37,7 +37,7 @@ namespace CertificatesWebApp.Users.Services
             }
             else
             {
-                userMakesRequests(userId, dto);
+                await userMakesRequests(userId, dto);
             }
         }
 

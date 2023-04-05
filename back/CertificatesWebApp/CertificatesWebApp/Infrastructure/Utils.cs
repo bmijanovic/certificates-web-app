@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Mime;
 
-namespace CertificatesWebApp.Utils
+namespace CertificatesWebApp.Infrastructure
 {
     internal static class Utils
     {
