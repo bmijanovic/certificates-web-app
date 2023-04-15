@@ -7,8 +7,8 @@ namespace CertificatesWebApp.Users.Services
 {
     public interface IMailService
     {
-        public Task SendActivationMail(User user, String code);
-        public Task SendPasswordResetMail(User user, String code);
+        public Task SendActivationMail(User user, int code);
+        public Task SendPasswordResetMail(User user, int code);
        
     }
 
@@ -16,7 +16,7 @@ namespace CertificatesWebApp.Users.Services
     {
         public MailService() { }
 
-        public async Task SendActivationMail(User user, String code) {
+        public async Task SendActivationMail(User user, int code) {
             StreamReader sr = new StreamReader("sendgrid_api_key.txt");
             String sendgridApiKey = sr.ReadLine();
             SendGridClient client = new SendGridClient(sendgridApiKey);
@@ -35,7 +35,7 @@ namespace CertificatesWebApp.Users.Services
             Response response = await client.SendEmailAsync(msg);
         }
 
-        public async Task SendPasswordResetMail(User user, String code) {
+        public async Task SendPasswordResetMail(User user, int code) {
             StreamReader sr = new StreamReader("sendgrid_api_key.txt");
             String sendgridApiKey = sr.ReadLine();
             SendGridClient client = new SendGridClient(sendgridApiKey);
