@@ -13,6 +13,7 @@ namespace CertificatesWebApp.Users.Services
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
+        List<Certificate> GetByParentSerialNumber(String serialNumber);
         Boolean IsValid(String serialNumber);
         public IEnumerable<Certificate> GetAll();
     }
@@ -58,7 +59,7 @@ namespace CertificatesWebApp.Users.Services
                 {
                     caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, user.Id, user.Id, algorithm));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber,null, DateTime.Now.Date, expDate, cType, true, user.Id, user.Id, algorithm));
                 }
                 else
                 {
@@ -73,7 +74,7 @@ namespace CertificatesWebApp.Users.Services
                     RandomNumberGenerator.Fill(serialNumber);
                     caCertificate = certificateRequest.Create(issuerCertificate, DateTimeOffset.Now.Date, expDate, serialNumber);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber,request.ParentSerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm));
                 }
                     
                X509Certificate2UI.DisplayCertificate(caCertificate);
@@ -142,6 +143,10 @@ namespace CertificatesWebApp.Users.Services
         public Certificate GetBySerialNumber(String serialNumber) { 
             return _certificateRepository.FindBySerialNumber(serialNumber).Result;
         }
+        public List<Certificate> GetByParentSerialNumber(String serialNumber)
+        {
+            return _certificateRepository.FindByParentSerialNumber(serialNumber).Result;
+        }
 
         public Boolean IsValid(String serialNumber) {
             if (string.IsNullOrEmpty(serialNumber))
@@ -156,6 +161,22 @@ namespace CertificatesWebApp.Users.Services
                 return false;
             }
             return true;
+        }
+
+        public void WithdrawCertificate(string serialNumber)
+        {
+            Certificate certificate = GetBySerialNumber(serialNumber);
+            List<Certificate> certificatesForProcessing=GetByParentSerialNumber(serialNumber);
+            while (certificatesForProcessing.Count > 0)
+            {
+                foreach (Certificate item in certificatesForProcessing)
+                {
+                    item.IsValid = false;
+                    SaveCertificate(item);
+                    certificatesForProcessing.Remove(item);
+                    certificatesForProcessing.AddRange(GetByParentSerialNumber(item.SerialNumber));
+                }
+            }
         }
 
         private void validateCertificate(string issuerSN,User user)
