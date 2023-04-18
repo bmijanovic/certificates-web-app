@@ -15,7 +15,7 @@ namespace Data.Models
         public Guid Id { get; set; }
 
         [Column("code")]
-        public String Code { get; set; }
+        public int Code { get; set; }
 
         [Column("expiration_date")]
         public DateTime ExpirationDate { get; set; }
