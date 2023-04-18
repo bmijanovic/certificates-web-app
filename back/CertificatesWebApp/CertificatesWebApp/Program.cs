@@ -45,15 +45,17 @@ builder.Services.AddCors(options =>
         {
             builder.WithOrigins("http://localhost:5173")
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials();
         });
 });
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddCookie(options =>
        {
-           options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-           options.Cookie.HttpOnly = true;
+           options.Cookie.SameSite = SameSiteMode.None;
+           options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+           options.Cookie.HttpOnly = false;
            options.Cookie.Name = "auth";
            options.SlidingExpiration = true;
            options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
