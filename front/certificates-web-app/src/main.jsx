@@ -6,12 +6,14 @@ import "./index.css"
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import AllCertificateRequests from "./pages/AllCertificateRequests.jsx";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
+import Login from "./pages/Login.jsx";
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
             staleTime: 1000 * 60 * 2
         }}})
 
 const router = createBrowserRouter([
+    {path:"/login", element: <Login/>},
     {path:"/generate", element: <GenerateCertificateRequest/>},
     {path:"/requests", element: <AllCertificateRequests/>},
 ])

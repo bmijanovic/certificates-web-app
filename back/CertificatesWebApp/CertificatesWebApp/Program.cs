@@ -52,13 +52,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddCookie(options =>
        {
+           options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+           options.Cookie.HttpOnly = true;
            options.Cookie.Name = "auth";
            options.SlidingExpiration = true;
            options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
            options.Cookie.MaxAge = options.ExpireTimeSpan;
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
        });
-
 
 
 var app = builder.Build();
@@ -71,14 +72,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowReactApp");
-
 app.UseMiddleware<ExceptionMiddleware>(false);
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();
