@@ -10,6 +10,7 @@ namespace CertificatesWebApp.Users.Services
         Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto);
         Data.Models.CertificateRequest GetCertificateRequest(Guid certificateRequestId);
         Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId);
+        List<GetCertificateRequestDTO> GetAll();
     }
     public class CertificateRequestService : ICertificateRequestService
     {
@@ -150,6 +151,12 @@ namespace CertificatesWebApp.Users.Services
         public async Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId)
         {
             List<CertificateRequest> certificateRequests = await _certificateRequestRepository.FindByUserId(userId);
+            return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).ToList();
+        }
+
+        public List<GetCertificateRequestDTO> GetAll()
+        {
+            List<CertificateRequest> certificateRequests = (List<CertificateRequest>)_certificateRequestRepository.ReadAll();
             return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).ToList();
         }
     }

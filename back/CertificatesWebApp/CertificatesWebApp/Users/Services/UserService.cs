@@ -14,15 +14,15 @@ namespace CertificatesWebApp.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfirmationRepository _confirmationRepository;
+        private readonly IConfirmationService _confirmationService;
         private readonly ICredentialsRepository _credentialsRepository;
         private readonly IMailService _mailService;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
-            IConfirmationRepository confirmationRepository, IMailService mailService)
+            IConfirmationService confirmationService, IMailService mailService)
         {
             _userRepository = userRepository;
-            _confirmationRepository = confirmationRepository;
+            _confirmationService = confirmationService;
             _credentialsRepository = credentialsRepository;
             _mailService = mailService;
         }
@@ -46,12 +46,7 @@ namespace CertificatesWebApp.Users.Services
             user.IsActivated = false;
             user = _userRepository.Create(user);
 
-            Confirmation confirmation = new Confirmation();
-            confirmation.ConfirmationType = ConfirmationType.ACTIVATION;
-            confirmation.Code = Math.Abs(user.Email.GetHashCode() + DateTime.Now.GetHashCode()).ToString();
-            confirmation.ExpirationDate = DateTime.Now.AddDays(1);
-            confirmation.User = user;
-            _confirmationRepository.Create(confirmation);
+            Confirmation confirmation = await _confirmationService.CreateActivationConfirmation(user);
 
             Credentials credentials = new Credentials();
             credentials.Salt = BCrypt.Net.BCrypt.GenerateSalt();
@@ -72,14 +67,8 @@ namespace CertificatesWebApp.Users.Services
                 throw new ArgumentException("User does not exist!");
             }
             else {
-                Confirmation confirmation = new Confirmation();
-                confirmation.ConfirmationType = ConfirmationType.RESET_PASSWORD;
-                confirmation.Code = Math.Abs(user.Email.GetHashCode() + DateTime.Now.GetHashCode()).ToString();
-                confirmation.ExpirationDate = DateTime.Now.AddDays(1);
-                confirmation.User = user;
-                _confirmationRepository.Create(confirmation);
-
-                _mailService.SendPasswordResetMail(user, confirmation.Code);
+                Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
+                await _mailService.SendPasswordResetMail(user, confirmation.Code);
             }
 
         }

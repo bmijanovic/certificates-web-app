@@ -39,7 +39,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize()]
         public async Task<ActionResult<List<GetCertificateRequestDTO>>> GetRequestsForUser()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -55,6 +55,16 @@ namespace CertificatesWebApp.Certificates.Controllers
                 return BadRequest("Cookie error");
             }
         }
+
+        [HttpGet]
+        [Route("getAll")]
+        [Authorize(Roles = "Admin")]
+        public ActionResult<List<GetCertificateRequestDTO>> GetAllRequests()
+        {
+            List<GetCertificateRequestDTO> requests = _certificateRequestService.GetAll();
+            return Ok(requests);
+        }
+
     }
 }
 

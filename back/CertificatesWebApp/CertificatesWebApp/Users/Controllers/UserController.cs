@@ -52,7 +52,7 @@ namespace CertificatesWebApp.Users.Controllers
 
         [HttpPost]
         [Route("{code}")]
-        public async Task<ActionResult<String>> activateAccount(String code){
+        public async Task<ActionResult<String>> activateAccount(int code){
             await _confirmationService.ActivateAccount(code);
             return Ok("Account activated successfully!");
         }
@@ -67,7 +67,7 @@ namespace CertificatesWebApp.Users.Controllers
 
         [HttpPost]
         [Route("{code}")]
-        public async Task<ActionResult<String>> resetPassword(String code, PasswordResetDTO passwordResetDTO)
+        public async Task<ActionResult<String>> resetPassword(int code, PasswordResetDTO passwordResetDTO)
         {
             await _confirmationService.ResetPassword(code, passwordResetDTO);
             return Ok("Password reset successfully!");
