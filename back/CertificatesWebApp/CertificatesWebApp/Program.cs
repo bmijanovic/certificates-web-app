@@ -38,17 +38,16 @@ builder.Services.AddTransient<IUserService, UserService>();
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
 
-builder.Services.AddCors(feature =>
-                feature.AddPolicy(
-                    "CorsPolicy",
-                    apiPolicy => apiPolicy
-                                    //.AllowAnyOrigin()
-                                    //.WithOrigins("http://localhost:4200")
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod()
-                                    .SetIsOriginAllowed(host => true)
-                    .AllowCredentials()
-                                ));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddCookie(options =>
@@ -70,6 +69,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowReactApp");
 
 app.UseMiddleware<ExceptionMiddleware>(false);
 
