@@ -15,9 +15,10 @@ namespace CertificatesWebApp.Users.Dtos
         public String Email { get; set; }
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(20, ErrorMessage = "Password must be between 5 and 20 characters", MinimumLength = 5)]
+        [StringLength(50, ErrorMessage = "Password must be between 8 and 50 characters", MinimumLength = 8)]
         public String Password { get; set; }
         [Required(ErrorMessage = "Telephone is required.")]
+        [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid")]
         public String Telephone { get; set; }
 
         public UserDTO(User user)

@@ -7,7 +7,7 @@ namespace CertificatesWebApp.Users.Services
 {
     public interface ICredentialsService : IService<Credentials>
     {
-        Task<User> AuthenticateAsync(String email, String password);
+        Task<User> Authenticate(String email, String password);
     }
     public class CredentialsService : ICredentialsService
     {
@@ -18,10 +18,10 @@ namespace CertificatesWebApp.Users.Services
             _credentialsRepository = credentialsRepository;
         }
 
-        public async Task<User> AuthenticateAsync(String email, String password)
+        public async Task<User> Authenticate(String email, String password)
         {
             Credentials credentials = await _credentialsRepository.FindByEmail(email);
-            if (credentials == null || !BCrypt.Net.BCrypt.HashPassword(password, credentials.Salt).Equals(credentials.Password))
+            if (credentials == null || !BCrypt.Net.BCrypt.Verify(password, credentials.Password))
             {
                 throw new KeyNotFoundException("Email or password is incorrect!");
             }

@@ -64,8 +64,7 @@ namespace CertificatesWebApp.Users.Services
                 if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
                 {
                     Credentials credentials = await _credentialsRepository.FindByEmail(confirmation.User.Email);
-                    credentials.Salt = BCrypt.Net.BCrypt.GenerateSalt();
-                    credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password, credentials.Salt);
+                    credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
                     credentials.ExpiratonDate = DateTime.Now.AddDays(30);
                     _credentialsRepository.Update(credentials);
                     _confirmationRepository.Delete(confirmation.Id);
