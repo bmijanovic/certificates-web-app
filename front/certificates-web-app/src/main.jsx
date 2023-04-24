@@ -14,6 +14,8 @@ import Home from "./pages/Home.jsx";
 import Register from "./pages/Register.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
+import {LocalizationProvider} from "@mui/x-date-pickers";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 
 axios.defaults.withCredentials = true
 
@@ -33,11 +35,13 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-      <AuthProvider>
-          <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router}/>
-            <ReactQueryDevtools/>
-          </QueryClientProvider>
-      </AuthProvider>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <AuthProvider>
+              <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router}/>
+                <ReactQueryDevtools/>
+              </QueryClientProvider>
+          </AuthProvider>
+      </LocalizationProvider>
   </React.StrictMode>,
 )
