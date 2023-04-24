@@ -72,5 +72,12 @@ namespace CertificatesWebApp.Users.Controllers
             await _confirmationService.ResetPassword(code, passwordResetDTO);
             return Ok("Password reset successfully!");
         }
+
+        [HttpGet]
+        [Authorize]
+        public ActionResult<String> amIAuthenticated()
+        {
+            return Ok("User is authenticated!");
+        }
     }
 }

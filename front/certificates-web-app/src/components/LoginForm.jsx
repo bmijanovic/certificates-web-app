@@ -1,31 +1,28 @@
 import React, {useState} from "react";
-import {useMutation} from "@tanstack/react-query";
+import axios from "axios";
+import {Link, useNavigate} from "react-router-dom";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
 
+    const navigate = useNavigate()
     function submitHandler(event) {
         event.preventDefault()
-        requestCertificateMutation.mutate()
-    }
 
-    const requestCertificateMutation = useMutation(() => {
-        return fetch("https://localhost:7018/api/User/login", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
-        })
-    }, {
-        onSuccess: (response) => {
-            console.log(response.text());
-        }
-    })
+        axios.post(`https://localhost:7018/api/User/login`, {
+            email: email,
+            password: password
+        }).then(res => {
+            if (res.status === 200){
+                navigate(0);
+            }
+        }).catch((error) => {
+            setError(error.response.data.message);
+            console.log(error);
+        });
+    }
 
     return <>
         <h1>Login</h1>
@@ -34,7 +31,13 @@ export default function LoginForm() {
                 <input type={"text"} name="email" onChange={(e) => {setEmail(e.target.value)}}/>
             </div>
             <div>
-                <input type={"text"} name="password" onChange={(e) => {setPassword(e.target.value)}}/>
+                <input type={"password"} name="password" onChange={(e) => {setPassword(e.target.value)}}/>
+            </div>
+            <div>
+                <span>{error}</span>
+            </div>
+            <div>
+                <span>Don't have an account? <Link to="/register">register now</Link></span>
             </div>
             <div>
                 <button type={"submit"}>Login</button>

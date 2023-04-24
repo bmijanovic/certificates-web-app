@@ -10,6 +10,8 @@ export default function AllCertificateRequests() {
         queryFn: () => fetch("https://localhost:7018/api/CertificateRequest").then(res => res.json())
     })
 
+
+
     return <>
         <h1>Certificate Requests</h1>
         {certificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
