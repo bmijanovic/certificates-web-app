@@ -63,7 +63,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByEmail(userEmail);
             if (user == null)
             {
-                throw new ArgumentException("User does not exist!");
+                throw new ArgumentException("User with that email does not exist!");
             }
             else {
                 Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
