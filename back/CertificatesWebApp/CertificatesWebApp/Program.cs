@@ -38,28 +38,28 @@ builder.Services.AddTransient<IUserService, UserService>();
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
 
-builder.Services.AddCors(feature =>
-                feature.AddPolicy(
-                    "CorsPolicy",
-                    apiPolicy => apiPolicy
-                                    //.AllowAnyOrigin()
-                                    //.WithOrigins("http://localhost:4200")
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod()
-                                    .SetIsOriginAllowed(host => true)
-                    .AllowCredentials()
-                                ));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddCookie(options =>
        {
+           options.Cookie.SameSite = SameSiteMode.None;
            options.Cookie.Name = "auth";
            options.SlidingExpiration = true;
            options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
            options.Cookie.MaxAge = options.ExpireTimeSpan;
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
        });
-
 
 
 var app = builder.Build();
@@ -71,13 +71,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactApp");
 app.UseMiddleware<ExceptionMiddleware>(false);
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();

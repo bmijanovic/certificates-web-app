@@ -35,7 +35,7 @@ namespace CertificatesWebApp.Users.Controllers
         [HttpPost]
         public async Task<ActionResult<String>> login(CredentialsDTO credentialsDTO)
         {
-            User user = await _credentialsService.AuthenticateAsync(credentialsDTO.Email, credentialsDTO.Password);
+            User user = await _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
             ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
@@ -71,6 +71,13 @@ namespace CertificatesWebApp.Users.Controllers
         {
             await _confirmationService.ResetPassword(code, passwordResetDTO);
             return Ok("Password reset successfully!");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public ActionResult<String> amIAuthenticated()
+        {
+            return Ok("User is authenticated!");
         }
     }
 }

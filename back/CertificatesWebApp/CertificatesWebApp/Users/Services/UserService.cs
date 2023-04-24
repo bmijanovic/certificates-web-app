@@ -49,8 +49,7 @@ namespace CertificatesWebApp.Users.Services
             Confirmation confirmation = await _confirmationService.CreateActivationConfirmation(user);
 
             Credentials credentials = new Credentials();
-            credentials.Salt = BCrypt.Net.BCrypt.GenerateSalt();
-            credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password, credentials.Salt);
+            credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
             credentials.User = user;
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
             _credentialsRepository.Create(credentials);
@@ -64,7 +63,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByEmail(userEmail);
             if (user == null)
             {
-                throw new ArgumentException("User does not exist!");
+                throw new ArgumentException("User with that email does not exist!");
             }
             else {
                 Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
