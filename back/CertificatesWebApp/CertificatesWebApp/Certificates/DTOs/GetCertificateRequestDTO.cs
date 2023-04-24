@@ -6,6 +6,7 @@ namespace CertificatesWebApp.Certificates.DTOs
 {
     public class GetCertificateRequestDTO
     {
+        public Guid Id { get; set; }         
         public String ParentSerialNumber { get; set; }
         public String O { get; set; }
         public String OU { get; set; }
@@ -25,6 +26,7 @@ namespace CertificatesWebApp.Certificates.DTOs
 
         public GetCertificateRequestDTO(CertificateRequest request)
         {
+            this.Id = request.Id;
             this.ParentSerialNumber = request.ParentSerialNumber;
             this.EndDate = request.EndDate;
             this.Type = request.Type;
