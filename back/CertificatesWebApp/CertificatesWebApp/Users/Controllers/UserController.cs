@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
@@ -75,9 +76,19 @@ namespace CertificatesWebApp.Users.Controllers
 
         [HttpGet]
         [Authorize]
-        public ActionResult<String> amIAuthenticated()
+        public async Task<ActionResult<string>> whoAmIAsync()
         {
-            return Ok("User is authenticated!");
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String role = identity.FindFirst(ClaimTypes.Role).Value;
+                return Ok(JsonConvert.SerializeObject(new { role }, Formatting.Indented));
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
         }
     }
 }

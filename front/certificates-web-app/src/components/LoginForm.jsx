@@ -1,6 +1,8 @@
 import React, {useState} from "react";
 import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
+import {InputLabel, TextField} from "@mui/material";
+import Button from "@mui/material/Button";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -19,29 +21,30 @@ export default function LoginForm() {
                 navigate(0);
             }
         }).catch((error) => {
-            setError(error.response.data.message);
-            console.log(error);
+            setError("Invalid email or password!");
         });
     }
 
     return <>
-        <h1>Login</h1>
-        <form onSubmit={submitHandler}>
-            <div>
-                <input type={"text"} name="email" onChange={(e) => {setEmail(e.target.value)}}/>
-            </div>
-            <div>
-                <input type={"password"} name="password" onChange={(e) => {setPassword(e.target.value)}}/>
-            </div>
-            <div>
-                <span>{error}</span>
-            </div>
-            <div>
-                <span>Don't have an account? <Link to="/register">register now</Link></span>
-            </div>
-            <div>
-                <button type={"submit"}>Login</button>
-            </div>
-        </form>
+        <div style={{textAlign: "center", alignItems: "center", margin:"auto"}}>
+            <h1>Login</h1>
+            <form onSubmit={submitHandler}>
+                <div>
+                    <TextField sx={{m: 1, minWidth: 300}}  type="text" name="email" label="Email" variant="outlined" onChange={(e) => {setEmail(e.target.value)}} />
+                </div>
+                <div>
+                    <TextField sx={{m: 1, minWidth: 300}}  type="password" name="password" label="Password" variant="outlined" onChange={(e) => {setPassword(e.target.value)}} />
+                </div>
+                <div>
+                    <InputLabel style={{color:"red"}}>{error}</InputLabel>
+                </div>
+                <div>
+                    <InputLabel>Don't have an account? <Link to="/register">Register now</Link></InputLabel>
+                </div>
+                <div>
+                    <Button sx={{mt: 2}} variant="outlined" type="submit">Login</Button>
+                </div>
+            </form>
+        </div>
     </>
 }
