@@ -65,7 +65,6 @@ export default function RequestForm() {
                 navigate("/requests");
             }
         }).catch((error) => {
-            setError(error.response.data.message);
             console.log(error);
         });
     }
