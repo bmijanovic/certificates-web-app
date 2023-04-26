@@ -3,6 +3,8 @@ using CertificatesWebApp.Infrastructure;
 using Data.Models;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using CertificatesWebApp.Certificates.DTOs;
+using CertificateRequest = Data.Models.CertificateRequest;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -15,6 +17,7 @@ namespace CertificatesWebApp.Users.Services
         Certificate GetBySerialNumber(String serialNumber);
         Boolean IsValid(String serialNumber);
         public IEnumerable<Certificate> GetAll();
+        GetCertificateDTO makeCertificateDTO(string serialNumber);
     }
     public class CertificateService : ICertificateService
     {
@@ -114,6 +117,18 @@ namespace CertificatesWebApp.Users.Services
         public IEnumerable<Certificate> GetAll() 
         {
             return _certificateRepository.ReadAll();
+        }
+
+        public GetCertificateDTO makeCertificateDTO(string serialNumber)
+        {
+            Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
+            if (certificate == null) throw new ArgumentException("Certificate does not exist!");
+            GetCertificateDTO dto = new GetCertificateDTO(certificate);
+            User owner = _userService.Get(certificate.OwnerId);
+            User issuer = _userService.Get(certificate.IssuerId);
+            dto.Owner = owner.Name + " " + owner.Surname;
+            dto.Issuer = issuer.Name + " " + issuer.Surname;
+            return dto;
         }
 
         private X509KeyUsageFlags getFlags(string exponents)

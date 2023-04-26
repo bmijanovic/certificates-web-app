@@ -75,19 +75,17 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpGet]
         [Authorize]
         [Route("checkValidity/{serialNumber}")]
-        public ActionResult<Boolean> CheckValidityCertificate(String serialNumber)
+        public ActionResult<GetCertificateDTO> CheckValidityCertificate(String serialNumber)
         {
-            if (_certificateService.IsValid(serialNumber)) {
-
-                return Ok(true);
-            }
-            return Ok(false);
+            GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(serialNumber);
+            certificateDTO.Valid = _certificateService.IsValid(serialNumber);
+            return Ok(certificateDTO);
         }
 
         [HttpPost]
         [Authorize]
         [Route("checkValidity")]
-        public ActionResult<Boolean> CheckValidityCertificate(IFormFile certificate)
+        public ActionResult<GetCertificateDTO> CheckValidityCertificate(IFormFile certificate)
         {
             if (certificate.Length == 0)
             {
@@ -103,12 +101,9 @@ namespace CertificatesWebApp.Certificates.Controllers
 
             // Create an X509Certificate2 object from the byte array
             X509Certificate2 x509Certificate = new X509Certificate2(data);
-            if (_certificateService.IsValid(x509Certificate.SerialNumber))
-            {
-
-                return Ok(true);
-            }
-            return Ok(false);
+            GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(x509Certificate.SerialNumber);
+            certificateDTO.Valid = _certificateService.IsValid(x509Certificate.SerialNumber);
+            return Ok(certificateDTO);
         }
 
         [HttpGet]
