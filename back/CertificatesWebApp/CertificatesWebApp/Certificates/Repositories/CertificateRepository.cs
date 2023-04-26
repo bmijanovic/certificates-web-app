@@ -8,6 +8,7 @@ namespace CertificatesWebApp.Certificates.Repositories
     public interface ICertificateRepository : IRepository<Certificate>
     {
         public Task<Certificate> FindBySerialNumber(string serialNumber);
+        public Task<List<Certificate>> FindByOwnerId(Guid ownerId);
     }
     public class CertificateRepository : Repository<Certificate>, ICertificateRepository
     {
@@ -19,6 +20,11 @@ namespace CertificatesWebApp.Certificates.Repositories
         public async Task<Certificate> FindBySerialNumber(string serialNumber)
         {
             return await _entities.Where(e => e.SerialNumber == serialNumber).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Certificate>> FindByOwnerId(Guid ownerId)
+        {
+            return await _entities.Where(e => e.OwnerId == ownerId).ToListAsync();
         }
     }
 }

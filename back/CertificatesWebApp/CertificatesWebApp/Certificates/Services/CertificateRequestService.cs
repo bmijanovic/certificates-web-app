@@ -3,7 +3,7 @@ using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Certificates.DTOs;
 using Data.Models;
 
-namespace CertificatesWebApp.Users.Services
+ namespace CertificatesWebApp.Users.Services
 {
     public interface ICertificateRequestService : IService<Data.Models.CertificateRequest>
     {
@@ -11,6 +11,7 @@ namespace CertificatesWebApp.Users.Services
         Data.Models.CertificateRequest GetCertificateRequest(Guid certificateRequestId);
         Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId);
         List<GetCertificateRequestDTO> GetAll();
+        Task<List<GetCertificateRequestDTO>> GetAllForApproval(Guid guid);
     }
     public class CertificateRequestService : ICertificateRequestService
     {
@@ -150,14 +151,27 @@ namespace CertificatesWebApp.Users.Services
 
         public async Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId)
         {
-            List<CertificateRequest> certificateRequests = await _certificateRequestRepository.FindByUserId(userId);
+            List<Data.Models.CertificateRequest> certificateRequests = await _certificateRequestRepository.FindByUserId(userId);
             return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).ToList();
         }
 
         public List<GetCertificateRequestDTO> GetAll()
         {
-            List<CertificateRequest> certificateRequests = (List<CertificateRequest>)_certificateRequestRepository.ReadAll();
+            List<Data.Models.CertificateRequest> certificateRequests = (List<Data.Models.CertificateRequest>)_certificateRequestRepository.ReadAll();
             return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).ToList();
+        }
+
+        public async Task<List<GetCertificateRequestDTO>> GetAllForApproval(Guid guid)
+        {
+            List<Certificate> certificates = await _certificateRepository.FindByOwnerId(guid);
+            List<Data.Models.CertificateRequest> requests = new List<Data.Models.CertificateRequest>();
+            foreach (Certificate certificate in certificates)
+            {
+                List<Data.Models.CertificateRequest> foundCertificatesRequests = await _certificateRequestRepository.FindByParentSerialNumber(certificate.SerialNumber);
+                requests.AddRange(foundCertificatesRequests);
+            }
+            return requests.Select(x => new GetCertificateRequestDTO(x)).ToList();
+
         }
     }
 }

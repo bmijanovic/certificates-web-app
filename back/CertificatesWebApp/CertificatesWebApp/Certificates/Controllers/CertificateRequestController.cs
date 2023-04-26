@@ -57,6 +57,25 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
+        [Route("forApproval")]
+        [Authorize()]
+        public async Task<ActionResult<List<GetCertificateRequestDTO>>> GetRequestsForApproval()
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForApproval(Guid.Parse(userId));
+                return Ok(requests);
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
+        }
+
+        [HttpGet]
         [Route("getAll")]
         [Authorize(Roles = "Admin")]
         public ActionResult<List<GetCertificateRequestDTO>> GetAllRequests()
