@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using CertificateRequest = Data.Models.CertificateRequest;
+using System.Web;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -75,6 +78,33 @@ namespace CertificatesWebApp.Certificates.Controllers
         public ActionResult<Boolean> CheckValidityCertificate(String serialNumber)
         {
             if (_certificateService.IsValid(serialNumber)) {
+
+                return Ok(true);
+            }
+            return Ok(false);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("checkValidity")]
+        public ActionResult<Boolean> CheckValidityCertificate(IFormFile certificate)
+        {
+            if (certificate.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            // Read the file data into a byte array
+            byte[] data;
+            using (BinaryReader reader = new BinaryReader(certificate.OpenReadStream()))
+            {
+                data = reader.ReadBytes((int)certificate.Length);
+            }
+
+            // Create an X509Certificate2 object from the byte array
+            X509Certificate2 x509Certificate = new X509Certificate2(data);
+            if (_certificateService.IsValid(x509Certificate.SerialNumber))
+            {
 
                 return Ok(true);
             }
