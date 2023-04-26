@@ -75,7 +75,7 @@ export default function AllCertificateRequests() {
                     <Tabs variant={"fullWidth"} value={value} onChange={handleChange} aria-label="basic tabs example">
                         <Tab label="Requests for your certificates"/>
                         <Tab label="Request based on your certificates"/>
-                        {role === "Admin" ? <Tab label="All certificates" /> : null}
+                        {role === "Admin" ? <Tab label="All requests" /> : null}
                     </Tabs>
                 </Box>
                 {renderPanel(value)}
