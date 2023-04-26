@@ -16,12 +16,26 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-
+import CheckValidity from "./pages/CheckValidity.jsx";
+import {ThemeContext} from "@emotion/react";
+import {createTheme, ThemeProvider} from "@mui/material";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
             staleTime: 1000 * 60 * 2
         }}})
+
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: "#146C94",
+        },
+        secondary: {
+            main: "#19A7CE",
+            contrastText: 'white'
+        },
+    },
+});
 
 const router = createBrowserRouter([
     {path:"/home", element: <ProtectedRoute><Home/></ProtectedRoute>},
@@ -30,18 +44,21 @@ const router = createBrowserRouter([
     {path:"/forgotPassword", element: <UnregisteredRoute><ForgotPassword/></UnregisteredRoute>},
     {path:"/generate", element: <ProtectedRoute><GenerateCertificateRequest/></ProtectedRoute>},
     {path:"/requests", element: <ProtectedRoute><AllCertificateRequests/></ProtectedRoute>},
+    {path:"/checkValidity", element: <ProtectedRoute><CheckValidity/></ProtectedRoute>},
     {path:"*", element: <Navigate to="/home" replace />},
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <AuthProvider>
-              <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router}/>
-                <ReactQueryDevtools/>
-              </QueryClientProvider>
-          </AuthProvider>
-      </LocalizationProvider>
+      <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <AuthProvider>
+                  <QueryClientProvider client={queryClient}>
+                    <RouterProvider router={router}/>
+                    <ReactQueryDevtools/>
+                  </QueryClientProvider>
+              </AuthProvider>
+          </LocalizationProvider>
+      </ThemeProvider>
   </React.StrictMode>,
 )

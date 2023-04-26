@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using CertificateRequest = Data.Models.CertificateRequest;
+using System.Web;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -72,13 +75,35 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpGet]
         [Authorize]
         [Route("checkValidity/{serialNumber}")]
-        public ActionResult<Boolean> CheckValidityCertificate(String serialNumber)
+        public ActionResult<GetCertificateDTO> CheckValidityCertificate(String serialNumber)
         {
-            if (_certificateService.IsValid(serialNumber)) {
+            GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(serialNumber);
+            certificateDTO.Valid = _certificateService.IsValid(serialNumber);
+            return Ok(certificateDTO);
+        }
 
-                return Ok(true);
+        [HttpPost]
+        [Authorize]
+        [Route("checkValidity")]
+        public ActionResult<GetCertificateDTO> CheckValidityCertificate(IFormFile certificate)
+        {
+            if (certificate.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
             }
-            return Ok(false);
+
+            // Read the file data into a byte array
+            byte[] data;
+            using (BinaryReader reader = new BinaryReader(certificate.OpenReadStream()))
+            {
+                data = reader.ReadBytes((int)certificate.Length);
+            }
+
+            // Create an X509Certificate2 object from the byte array
+            X509Certificate2 x509Certificate = new X509Certificate2(data);
+            GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(x509Certificate.SerialNumber);
+            certificateDTO.Valid = _certificateService.IsValid(x509Certificate.SerialNumber);
+            return Ok(certificateDTO);
         }
 
         [HttpGet]

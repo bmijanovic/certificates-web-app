@@ -125,7 +125,8 @@ export default function RequestForm() {
                         <FormControlLabel control={<Checkbox value="7" onChange={(event) => checkFlag(event)}/>} label={"DigitalSignature"}/>
                     </FormGroup>
                 </div>
-                <Button sx={{mt: 2}} variant="outlined" type="submit">Send Request</Button>
+
+                <Button sx={{mt: 2}} variant="contained" type="submit">Send Request</Button>
             </form>
         </div>
     </>
