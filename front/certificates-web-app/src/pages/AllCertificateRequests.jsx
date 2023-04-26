@@ -38,7 +38,7 @@ export default function AllCertificateRequests() {
                 return <>
                     {certificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
                         <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {certificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item}/>)}
+                            {certificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={false}/>)}
                         </Grid>
                     </div>
                     }
@@ -47,7 +47,7 @@ export default function AllCertificateRequests() {
                 return <>
                     {approvalCertificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
                         <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {approvalCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item}/>)}
+                            {approvalCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={true}/>)}
                         </Grid>
                     </div>
                     }
@@ -56,7 +56,7 @@ export default function AllCertificateRequests() {
                 return <>
                     {allCertificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
                         <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {allCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item}/>)}
+                            {allCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item}  acceptable={false}/>)}
                         </Grid>
                     </div>
                     }
@@ -68,7 +68,7 @@ export default function AllCertificateRequests() {
 
 
     return <>
-        <div style={{textAlign: "center"}}>
+        <div style={{textAlign: "center", width: "80%", margin:"auto"}}>
             <h1>Certificate Requests</h1>
             <TabContext value={value.toString()}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

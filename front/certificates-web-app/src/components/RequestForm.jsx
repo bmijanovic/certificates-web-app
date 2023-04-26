@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useContext} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {useNavigate} from "react-router-dom";
 import Button from '@mui/material/Button';
@@ -15,17 +15,20 @@ import {
 import dayjs from "dayjs";
 import {DatePicker} from "@mui/x-date-pickers";
 import axios from "axios";
+import {AuthContext} from "../security/AuthContext.jsx";
 
 
 export default function RequestForm() {
     const [serialNumber, setSerialNumber] = useState("")
-    const [certificateType, setCertificateType] = useState("Root")
+    const [certificateType, setCertificateType] = useState("End")
     const [endDate, setEndDate] = useState("2000-01-01T00:00:00.000000Z")
     const [hashAlgorithm, setHashAlgorithm] = useState("SHA256")
     const [o, setO] = useState("")
     const [ou, setOu] = useState("")
     const [c, setC] = useState("")
     const [flags, setFlags] = useState([])
+    const { isAuthenticated, role, isLoading } = useContext(AuthContext);
+
     //staviti za svako polje
 
     const queryClient = useQueryClient()
@@ -74,32 +77,6 @@ export default function RequestForm() {
             setFlags(prevFlags => prevFlags.filter(flag => flag !== event.target.value))
     }
 
-    // const requestCertificateMutation = useMutation(() => {
-    //     return fetch("https://localhost:7018/api/CertificateRequest/", {
-    //         method: "POST",
-    //         headers: {
-    //             "content-type": "application/json"
-    //         },
-    //         body: JSON.stringify({
-    //             parentSerialNumber: serialNumber,
-    //             o: o,
-    //             ou: ou,
-    //             c: c,
-    //             endDate: endDate,
-    //             type: certificateType.toUpperCase(),
-    //             hashAlgorithm: hashAlgorithm,
-    //             flags: flags.sort().join(',')
-    //         })
-    //     })
-    // }, {
-    //     onSuccess: () => {
-    //         queryClient.invalidateQueries({queryKey: ["certificateRequest"]})
-    //         navigate("/requests")
-    //     }
-    // })
-
-
-
     return <>
         <div style={{}}>
             <h1 style={{textAlign: "center"}}>Generate Certificate</h1>
@@ -110,7 +87,7 @@ export default function RequestForm() {
                         <InputLabel id="demo-simple-select-helper-label">Type</InputLabel>
                         <Select value={certificateType} label="Type" onChange={(e) => {setCertificateType(e.target.value)}}>
                             <MenuItem value=""><em>None</em></MenuItem>
-                            <MenuItem value="Root">Root</MenuItem>
+                            {role === "Admin" ? <MenuItem value="Root">Root</MenuItem> : null}
                             <MenuItem value="Intermediate">Intermediate</MenuItem>
                             <MenuItem value="End">End</MenuItem>
                         </Select>
