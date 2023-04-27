@@ -1,8 +1,16 @@
 import React, {useState} from "react";
 import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
-import {InputLabel, TextField} from "@mui/material";
+import {
+    Avatar,
+    Box, Container,
+    CssBaseline,
+    InputLabel, Stack,
+    TextField,
+    Typography
+} from "@mui/material";
 import Button from "@mui/material/Button";
+import {LockOutlined} from "@mui/icons-material";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -21,30 +29,87 @@ export default function LoginForm() {
                 navigate(0);
             }
         }).catch((error) => {
-            setError("Invalid email or password!");
-        });
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Invalid email or password!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Account is not activated!");
+            }
+            else{
+                setError("An error occurred!");
+            }
+        })
     }
 
     return <>
-        <div style={{textAlign: "center", alignItems: "center", margin:"auto"}}>
-            <h1>Login</h1>
-            <form onSubmit={submitHandler}>
-                <div>
-                    <TextField sx={{m: 1, minWidth: 300}}  type="text" name="email" label="Email" variant="outlined" onChange={(e) => {setEmail(e.target.value)}} />
-                </div>
-                <div>
-                    <TextField sx={{m: 1, minWidth: 300}}  type="password" name="password" label="Password" variant="outlined" onChange={(e) => {setPassword(e.target.value)}} />
-                </div>
-                <div>
-                    <InputLabel style={{color:"red"}}>{error}</InputLabel>
-                </div>
-                <div>
-                    <InputLabel>Don't have an account? <Link to="/register">Register now</Link></InputLabel>
-                </div>
-                <div>
-                    <Button sx={{mt: 2}} variant="outlined" type="submit">Login</Button>
-                </div>
-            </form>
-        </div>
+        <Container component="main" maxWidth="xs">
+            <CssBaseline />
+            <Box
+                sx={{
+                    marginTop: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                }}
+            >
+                <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+                    <LockOutlined/>
+                </Avatar>
+                <Typography component="h1" variant="h3">
+                    Sign in
+                </Typography>
+                <Box component="form" onSubmit={submitHandler} sx={{ mt: 1 }}>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        autoFocus
+                        type="text"
+                        id="email"
+                        label="Email Address"
+                        name="email"
+                        autoComplete="email"
+                        variant="outlined"
+                        onChange={(e) => {setEmail(e.target.value)}}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        variant="outlined"
+                        onChange={(e) => {setPassword(e.target.value)}}
+                    />
+                    <div style={{textAlign:"center", marginBottom:"5px"}}>
+                        <Link to="/forgotPassword" style={{color:"grey", textDecoration:"None"}}>{"Forgot password?"}</Link>
+                    </div>
+                    <div>
+                        <InputLabel style={{color:"red"}}>{error}</InputLabel>
+                    </div>
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="outlined"
+                        sx={{mt:2, mb: 3 }}
+                    >
+                        Sign In
+                    </Button>
+                    <Stack container style={{textAlign:"center"}}>
+                        <Stack item>
+                            {"Don't have an account? "}
+                        </Stack>
+                        <Stack item>
+                            <Link to="/register" style={{color:"dodgerblue", textDecoration:"None"}}>
+                                {"Sign up"}
+                            </Link>
+                        </Stack>
+                    </Stack>
+                </Box>
+            </Box>
+        </Container>
     </>
 }

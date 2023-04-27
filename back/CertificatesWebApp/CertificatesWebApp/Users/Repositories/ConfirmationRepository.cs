@@ -7,8 +7,9 @@ namespace CertificatesWebApp.Users.Repositories
 {
     public interface IConfirmationRepository : IRepository<Confirmation>
     {
-        Task<Confirmation> FindUserConfirmationByCodeAndType(int code, ConfirmationType type);
-        Task<Confirmation> FindUserConfirmationByCode(int code);
+        Task<Confirmation> FindConfirmationByCodeAndType(int code, ConfirmationType type);
+        Task<Confirmation> FindConfirmationByCode(int code);
+        Task DeleteConfirmationByUserId(Guid id);
     }
     public class ConfirmationRepository : Repository<Confirmation>, IConfirmationRepository
     {
@@ -17,13 +18,18 @@ namespace CertificatesWebApp.Users.Repositories
 
         }
 
-        public async Task<Confirmation> FindUserConfirmationByCodeAndType(int code, ConfirmationType type) { 
+        public async Task<Confirmation> FindConfirmationByCodeAndType(int code, ConfirmationType type) { 
             return await _entities.Include(e => e.User).FirstOrDefaultAsync(e => e.Code == code && e.ConfirmationType == type);
         }
 
-        public async Task<Confirmation> FindUserConfirmationByCode(int code)
+        public async Task<Confirmation> FindConfirmationByCode(int code)
         {
             return await _entities.Include(e => e.User).FirstOrDefaultAsync(e => e.Code == code);
+        }
+
+        public async Task DeleteConfirmationByUserId(Guid id) {
+            _entities.RemoveRange(_entities.Where(c => c.User.Id == id));
+            await _context.SaveChangesAsync();
         }
     }
 }

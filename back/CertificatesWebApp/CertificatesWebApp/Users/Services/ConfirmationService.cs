@@ -30,7 +30,7 @@ namespace CertificatesWebApp.Users.Services
 
         public async Task ActivateAccount(int code)
         {
-            Confirmation confirmation = await _confirmationRepository.FindUserConfirmationByCodeAndType(code, ConfirmationType.ACTIVATION);
+            Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, ConfirmationType.ACTIVATION);
             if (confirmation != null)
             {
                 if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
@@ -42,7 +42,8 @@ namespace CertificatesWebApp.Users.Services
                 else 
                 {
                     _confirmationRepository.Delete(confirmation.Id);
-                    throw new KeyNotFoundException("Activation code expired!");
+                    _userRepository.Delete(confirmation.User.Id);
+                    throw new KeyNotFoundException("Activation code expired, please sign up again!");
                 }
             }
             else {
@@ -58,7 +59,7 @@ namespace CertificatesWebApp.Users.Services
                 throw new ArgumentException("Passwords are not same!");
             }
 
-            Confirmation confirmation = await _confirmationRepository.FindUserConfirmationByCodeAndType(code, ConfirmationType.RESET_PASSWORD);
+            Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, ConfirmationType.RESET_PASSWORD);
             if (confirmation != null)
             {
                 if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
@@ -91,19 +92,26 @@ namespace CertificatesWebApp.Users.Services
         }
 
         public async Task<Confirmation> CreateResetPasswordConfirmation(User user) {
-            Confirmation confirmation = new Confirmation();
-            confirmation.ConfirmationType = ConfirmationType.RESET_PASSWORD;
-            confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
-            confirmation.ExpirationDate = DateTime.Now.AddDays(1);
-            confirmation.User = user;
-            return _confirmationRepository.Create(confirmation);
+            if (user.IsActivated)
+            {
+                await _confirmationRepository.DeleteConfirmationByUserId(user.Id);
+                Confirmation confirmation = new Confirmation();
+                confirmation.ConfirmationType = ConfirmationType.RESET_PASSWORD;
+                confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
+                confirmation.ExpirationDate = DateTime.Now.AddDays(1);
+                confirmation.User = user;
+                return _confirmationRepository.Create(confirmation);
+            }
+            else {
+                throw new ArgumentException("User not activated!");
+            }
         }
 
         private async Task<int> GenerateVerificationCode(int codeLength)
         {
             byte[] randomBytes = RandomNumberGenerator.GetBytes(codeLength);
             int verificationCode = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % (int)Math.Pow(10, codeLength);
-            if (await _confirmationRepository.FindUserConfirmationByCode(verificationCode) != null)
+            if (await _confirmationRepository.FindConfirmationByCode(verificationCode) != null)
             {
                 return await GenerateVerificationCode(codeLength);
             }
