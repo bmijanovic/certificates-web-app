@@ -42,7 +42,7 @@ export default function LoginForm() {
     }
 
     return <>
-        <Container component="main" maxWidth="xs">
+        <Container container="main" maxWidth="xs">
             <CssBaseline />
             <Box
                 sx={{
@@ -98,11 +98,11 @@ export default function LoginForm() {
                     >
                         Sign In
                     </Button>
-                    <Stack container style={{textAlign:"center"}}>
-                        <Stack item>
+                    <Stack style={{textAlign:"center"}}>
+                        <Stack>
                             {"Don't have an account? "}
                         </Stack>
-                        <Stack item>
+                        <Stack>
                             <Link to="/register" style={{color:"dodgerblue", textDecoration:"None"}}>
                                 {"Sign up"}
                             </Link>
