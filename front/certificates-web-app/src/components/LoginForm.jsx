@@ -38,7 +38,7 @@ export default function LoginForm() {
             else{
                 setError("An error occurred!");
             }
-        })
+        });
     }
 
     return <>
@@ -93,8 +93,8 @@ export default function LoginForm() {
                     <Button
                         type="submit"
                         fullWidth
-                        variant="outlined"
-                        sx={{mt:2, mb: 3 }}
+                        variant="contained"
+                        sx={{mt:3, mb: 3 }}
                     >
                         Sign In
                     </Button>

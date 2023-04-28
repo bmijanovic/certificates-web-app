@@ -40,14 +40,14 @@ namespace CertificatesWebApp.Users.Controllers
             ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
             return Ok("Logged in successfully!");
         }
 
         [HttpPost]
         public async Task<ActionResult<String>> logout()
         {
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Ok("Logged out successfully!");
         }
 

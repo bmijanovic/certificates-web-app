@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, Navigate, redirect, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import GenerateCertificateRequest from "./pages/GenerateCertificateRequest.jsx";
 import "./index.css"
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
@@ -17,7 +17,6 @@ import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import CheckValidity from "./pages/CheckValidity.jsx";
-import {ThemeContext} from "@emotion/react";
 import {createTheme, ThemeProvider} from "@mui/material";
 axios.defaults.withCredentials = true
 
