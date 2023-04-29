@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import {createBrowserRouter, Navigate, redirect, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import GenerateCertificateRequest from "./pages/GenerateCertificateRequest.jsx";
 import "./index.css"
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
@@ -17,8 +17,8 @@ import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import CheckValidity from "./pages/CheckValidity.jsx";
-import {ThemeContext} from "@emotion/react";
 import {createTheme, ThemeProvider} from "@mui/material";
+import AccountActivation from "./pages/AccountActivation.jsx";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -41,6 +41,7 @@ const router = createBrowserRouter([
     {path:"/home", element: <ProtectedRoute><Home/></ProtectedRoute>},
     {path:"/login", element: <UnregisteredRoute><Login/></UnregisteredRoute>},
     {path:"/register", element: <UnregisteredRoute><Register/></UnregisteredRoute>},
+    {path:"/activateAccount", element: <UnregisteredRoute><AccountActivation/></UnregisteredRoute>},
     {path:"/forgotPassword", element: <UnregisteredRoute><ForgotPassword/></UnregisteredRoute>},
     {path:"/generate", element: <ProtectedRoute><GenerateCertificateRequest/></ProtectedRoute>},
     {path:"/requests", element: <ProtectedRoute><AllCertificateRequests/></ProtectedRoute>},

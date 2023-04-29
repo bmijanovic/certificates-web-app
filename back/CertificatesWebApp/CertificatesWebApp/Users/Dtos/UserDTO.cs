@@ -7,18 +7,22 @@ namespace CertificatesWebApp.Users.Dtos
     {
         [Required(ErrorMessage = "Name is required.")]
         public String Name { get; set; }
+
         [Required(ErrorMessage = "Surname is required.")]
         public String Surname { get; set; }
+
         [Required(ErrorMessage = "Email is required.")]
         [StringLength(40, ErrorMessage = "Email must be between 5 and 40 characters", MinimumLength = 5)]
         [EmailAddress(ErrorMessage = "Email is not in valid form.")]
         public String Email { get; set; }
+
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(50, ErrorMessage = "Password must be between 8 and 50 characters", MinimumLength = 8)]
+        [RegularExpression("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric and one symbol).")]
         public String Password { get; set; }
+
         [Required(ErrorMessage = "Telephone is required.")]
-        [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid")]
+        [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid.")]
         public String Telephone { get; set; }
 
         public UserDTO(User user)

@@ -14,16 +14,19 @@ namespace CertificatesWebApp.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfirmationService _confirmationService;
+        private readonly IConfirmationRepository _confirmationrepository;
         private readonly ICredentialsRepository _credentialsRepository;
+        private readonly IConfirmationService _confirmationService;
         private readonly IMailService _mailService;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
-            IConfirmationService confirmationService, IMailService mailService)
+            IConfirmationRepository confirmationrepository, IConfirmationService confirmationService, 
+            IMailService mailService)
         {
             _userRepository = userRepository;
             _confirmationService = confirmationService;
             _credentialsRepository = credentialsRepository;
+            _confirmationrepository = confirmationrepository;
             _mailService = mailService;
         }
 
@@ -54,9 +57,18 @@ namespace CertificatesWebApp.Users.Services
             credentials.ExpiratonDate = DateTime.Now.AddDays(30);
             _credentialsRepository.Create(credentials);
 
-            await _mailService.SendActivationMail(user, confirmation.Code);
-
-            return user;
+            try
+            {
+                await _mailService.SendActivationMail(user, confirmation.Code);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _userRepository.Delete(user.Id);
+                _confirmationrepository.Delete(confirmation.Id);
+                _credentialsRepository.Delete(credentials.Id);
+                throw new ArgumentException("An error occured!");
+            }
         }
 
         public async Task SendPasswordResetMail(String userEmail) { 
