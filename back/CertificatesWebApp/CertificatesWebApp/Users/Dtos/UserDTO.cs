@@ -18,7 +18,6 @@ namespace CertificatesWebApp.Users.Dtos
 
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(50, ErrorMessage = "Password must be between 8 and 50 characters", MinimumLength = 8)]
         [RegularExpression("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric and one symbol).")]
         public String Password { get; set; }
 

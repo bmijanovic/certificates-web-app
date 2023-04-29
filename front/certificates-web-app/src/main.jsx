@@ -18,6 +18,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import CheckValidity from "./pages/CheckValidity.jsx";
 import {createTheme, ThemeProvider} from "@mui/material";
+import AccountActivation from "./pages/AccountActivation.jsx";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
     {path:"/home", element: <ProtectedRoute><Home/></ProtectedRoute>},
     {path:"/login", element: <UnregisteredRoute><Login/></UnregisteredRoute>},
     {path:"/register", element: <UnregisteredRoute><Register/></UnregisteredRoute>},
+    {path:"/activateAccount", element: <UnregisteredRoute><AccountActivation/></UnregisteredRoute>},
     {path:"/forgotPassword", element: <UnregisteredRoute><ForgotPassword/></UnregisteredRoute>},
     {path:"/generate", element: <ProtectedRoute><GenerateCertificateRequest/></ProtectedRoute>},
     {path:"/requests", element: <ProtectedRoute><AllCertificateRequests/></ProtectedRoute>},

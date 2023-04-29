@@ -45,22 +45,7 @@ export default function RegisterForm() {
                 setDialogOpen(true);
             }
         }).catch((error) => {
-            if (error.response?.status !== undefined && error.response.status === 404){
-                //setError("Invalid email or password!");
-            }
-            else if (error.response?.status !== undefined && error.response.status === 400){
-                // let errorMsg = "";
-                // for(let key in error.response.data.errors) {
-                //     let errors = error.response.data.errors[key];
-                //     for (let errorKey in errors){
-                //         errorMsg += errors[errorKey] + "\n";
-                //     }
-                // }
-                // setError(errorMsg);
-            }
-            else{
-                setError("An error occurred!");
-            }
+            console.log(error);
         });
     }
 
