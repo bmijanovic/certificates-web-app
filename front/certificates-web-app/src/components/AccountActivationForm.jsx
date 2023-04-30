@@ -10,6 +10,10 @@ export default function AccountActivationForm() {
     const location = useLocation();
     const navigate = useNavigate();
 
+    const redirectToLogin = () => {
+        navigate("/login");
+    };
+
     function activateAccount(code) {
         axios.post(`https://localhost:7018/api/User/activateAccount/` + code)
             .then(res => {
@@ -46,7 +50,8 @@ export default function AccountActivationForm() {
                 >
                     <p style={{textAlign:"center"}}>Account activated successfully. Sign in to access full features!</p>
                     <Button
-                        type="submit"
+                        type="button"
+                        onClick={redirectToLogin}
                         fullWidth
                         variant="contained"
                         sx={{mt:3, mb: 3 }}

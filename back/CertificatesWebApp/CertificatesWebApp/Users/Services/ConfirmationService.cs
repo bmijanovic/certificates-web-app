@@ -120,7 +120,7 @@ namespace CertificatesWebApp.Users.Services
         }
 
         public async Task<bool> ConfirmationExists(int code, ConfirmationType confirmationType) {
-            Confirmation confirmation = await _confirmationRepository.FindConfirmationByCode(code);
+            Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, confirmationType);
             if (confirmation == null)
             {
                 return false;
