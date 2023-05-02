@@ -18,16 +18,18 @@ namespace CertificatesWebApp.Users.Services
         private readonly ICredentialsRepository _credentialsRepository;
         private readonly IConfirmationService _confirmationService;
         private readonly IMailService _mailService;
+        private readonly ISMSService _smsService;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
             IConfirmationRepository confirmationrepository, IConfirmationService confirmationService, 
-            IMailService mailService)
+            IMailService mailService, ISMSService smsService)
         {
             _userRepository = userRepository;
             _confirmationService = confirmationService;
             _credentialsRepository = credentialsRepository;
             _confirmationrepository = confirmationrepository;
             _mailService = mailService;
+            _smsService = smsService;
         }
 
         public async Task<User> CreateUser(UserDTO userDTO)
@@ -59,7 +61,13 @@ namespace CertificatesWebApp.Users.Services
 
             try
             {
-                await _mailService.SendActivationMail(user, confirmation.Code);
+                if (userDTO.VerificationType == VerificationType.EMAIL)
+                {
+                    await _mailService.SendActivationMail(user, confirmation.Code);
+                }
+                else {
+                    await _smsService.SendActivationSMS(user, confirmation.Code);
+                }
                 return user;
             }
             catch (Exception ex)

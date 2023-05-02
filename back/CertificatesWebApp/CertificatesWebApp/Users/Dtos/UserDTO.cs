@@ -25,6 +25,10 @@ namespace CertificatesWebApp.Users.Dtos
         [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid.")]
         public String Telephone { get; set; }
 
+
+        [Required(ErrorMessage = "Verification type is required.")]
+        public VerificationType VerificationType { get; set; }
+
         public UserDTO(User user)
         {
             Name = user.Name;

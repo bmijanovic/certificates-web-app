@@ -1,7 +1,6 @@
 ﻿using Data.Models;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using System.Net.Mail;
 
 namespace CertificatesWebApp.Users.Services
 {

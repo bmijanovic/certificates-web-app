@@ -1200,3 +1200,4 @@ Migrations/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,aspnetcore,react,reactnative,rider,csharp,dotnetcore,webstorm,visualstudiocode,angular
 back/CertificatesWebApp/CertificatesWebApp/sendgrid_api_key.txt
+back/CertificatesWebApp/CertificatesWebApp/twilio_credentials.txt
