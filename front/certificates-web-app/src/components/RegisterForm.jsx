@@ -168,7 +168,7 @@ export default function RegisterForm() {
                 </DialogContentText>
             </DialogContent>
             <DialogActions style={{display:"flex", justifyContent:"center"}}>
-                <Button onClick={redirectToLogin} variant="contained">Go to sign in</Button>
+                <Button onClick={redirectToLogin} variant="contained">OK</Button>
             </DialogActions>
         </Dialog>
     </>
