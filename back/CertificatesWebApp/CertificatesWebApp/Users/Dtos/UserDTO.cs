@@ -1,5 +1,6 @@
 ﻿using Data.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CertificatesWebApp.Users.Dtos
 {
@@ -26,6 +27,7 @@ namespace CertificatesWebApp.Users.Dtos
         public String Telephone { get; set; }
 
 
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         [Required(ErrorMessage = "Verification type is required.")]
         public VerificationType VerificationType { get; set; }
 

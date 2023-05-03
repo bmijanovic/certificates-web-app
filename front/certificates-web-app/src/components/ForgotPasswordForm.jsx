@@ -1,24 +1,21 @@
 import React, {useState} from "react";
 import axios from "axios";
 import {
-    Avatar,
     Box,
     Container,
     CssBaseline,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-    Grid,
-    InputLabel,
-    Stack,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, FormControlLabel, FormLabel,
+    InputLabel, Radio, RadioGroup,
     TextField,
     Typography
 } from "@mui/material";
-import {LockOutlined} from "@mui/icons-material";
 import Button from "@mui/material/Button";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export default function ForgotPasswordForm() {
-    const [email, setEmail] = useState("")
+    const [input, setInput] = useState("")
     const [error, setError] = useState("")
+    const [verificationType, setVerificationType] = useState("email")
 
     const navigate = useNavigate()
 
@@ -31,14 +28,26 @@ export default function ForgotPasswordForm() {
     function handleSubmit(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/sendResetPasswordMail/` + email)
-            .then(res => {
-            if (res.status === 200){
-                setDialogOpen(true);
-            }
-        }).catch((error) => {
-            console.log(error);
-        });
+        if (verificationType === "email"){
+            axios.post(`https://localhost:7018/api/User/sendResetPasswordMail/` + input)
+                .then(res => {
+                    if (res.status === 200){
+                        setDialogOpen(true);
+                    }
+                }).catch((error) => {
+                console.log(error);
+            });
+        }
+        else{
+            axios.post(`https://localhost:7018/api/User/sendResetPasswordSMS/` + input)
+                .then(res => {
+                    if (res.status === 200){
+                        setDialogOpen(true);
+                    }
+                }).catch((error) => {
+                console.log(error);
+            });
+        }
     }
 
     return <>
@@ -56,15 +65,30 @@ export default function ForgotPasswordForm() {
                     Forgot password
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                    <FormControl
+                        sx={{mt: 2, mb:2}}>
+                        <FormLabel id="radio-buttons-group-label">Reset with</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="radio-buttons-group-label"
+                            name="row-radio-buttons-group"
+                            defaultValue="email"
+                            onChange={(e) => {setVerificationType(e.target.value)}}
+                        >
+                            <FormControlLabel value="email" control={<Radio />} label="Email" />
+                            <FormControlLabel value="sms" control={<Radio />} label="SMS" />
+                        </RadioGroup>
+                    </FormControl>
+
                     <TextField
                         required
                         fullWidth
                         id="email"
-                        label="Email Address"
+                        label={verificationType === "email" ? "Email address" : "Telephone"}
                         name="email"
-                        placeholder={"(e.g. user@example.com)"}
-                        autoComplete="email"
-                        onChange={(e) => {setEmail(e.target.value)}}
+                        placeholder={verificationType === "email" ? "(e.g. user@example.com)" : "(e.g. +3811234567)"}
+                        autoComplete={verificationType === "email" ? "email" : "tel"}
+                        onChange={(e) => {setInput(e.target.value)}}
                     />
                     <div>
                         <InputLabel style={{color:"red"}}>{error}</InputLabel>
@@ -75,7 +99,7 @@ export default function ForgotPasswordForm() {
                         variant="contained"
                         sx={{ mt: 3, mb: 3 }}
                     >
-                        Send reset password mail
+                        Begin reset process
                     </Button>
                 </Box>
             </Box>
@@ -90,7 +114,7 @@ export default function ForgotPasswordForm() {
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Next step is to open your email inbox and follow password reset process from there.
+                    Next step is to open your email or sms inbox and follow password reset process from there.
                 </DialogContentText>
             </DialogContent>
             <DialogActions style={{display:"flex", justifyContent:"center"}}>

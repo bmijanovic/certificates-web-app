@@ -8,6 +8,6 @@ namespace Data.Models
 {
     public enum VerificationType
     {
-        SMS, EMAIL
+        EMAIL, SMS
     }
 }

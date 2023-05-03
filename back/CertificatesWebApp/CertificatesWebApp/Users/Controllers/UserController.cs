@@ -67,6 +67,14 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpPost]
+        [Route("{telephone}")]
+        public async Task<ActionResult<String>> sendResetPasswordSMS(String telephone)
+        {
+            await _userService.SendPasswordResetSMS(telephone);
+            return Ok("Password reset sms sent successfully!");
+        }
+
+        [HttpPost]
         [Route("{code}")]
         public async Task<ActionResult<String>> resetPassword(int code, PasswordResetDTO passwordResetDTO)
         {
