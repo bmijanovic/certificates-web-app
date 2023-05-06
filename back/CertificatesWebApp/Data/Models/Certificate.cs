@@ -36,7 +36,10 @@ namespace Data.Models
         [Column("owner_id")]
         public Guid OwnerId { get; set; }
 
-        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm)
+        [Column("attributes")]
+        public string Attributes{ get; set; }
+
+        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm,string attributes)
         {
             
             SerialNumber = serialNumber;
@@ -47,6 +50,7 @@ namespace Data.Models
             IssuerId = issuerId;
             OwnerId = ownerId;
             HashAlgorithm = hashAlgorithm;
+            Attributes = attributes;
         }
 
         public Certificate()

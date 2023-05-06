@@ -163,7 +163,7 @@ using Data.Models;
 
         public async Task<List<GetCertificateRequestDTO>> GetAllForApproval(Guid guid)
         {
-            List<Certificate> certificates = await _certificateRepository.FindByOwnerId(guid);
+            IEnumerable<Certificate> certificates = await _certificateRepository.FindByOwnerId(guid);
             List<Data.Models.CertificateRequest> requests = new List<Data.Models.CertificateRequest>();
             foreach (Certificate certificate in certificates)
             {
