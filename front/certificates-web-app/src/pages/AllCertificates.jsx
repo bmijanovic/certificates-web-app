@@ -39,9 +39,8 @@ export default function AllCertificates(){
                     console.log(err)
                 });
                 break;
-
         }
-    },[page,rowsPerPage])
+    },[page,rowsPerPage,value])
     const handleChange = (event, newValue) => {
         setValue(newValue.props.value);
         setPage(0);

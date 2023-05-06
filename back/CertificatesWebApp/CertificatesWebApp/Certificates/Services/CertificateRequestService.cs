@@ -2,6 +2,7 @@
 using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Certificates.DTOs;
 using Data.Models;
+ using Microsoft.Identity.Client;
 
  namespace CertificatesWebApp.Users.Services
 {
@@ -9,22 +10,29 @@ using Data.Models;
     {
         Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto);
         Data.Models.CertificateRequest GetCertificateRequest(Guid certificateRequestId);
-        Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId);
         List<GetCertificateRequestDTO> GetAll();
+        List<GetCertificateRequestDTO> GetAllPagable(PageParametersDTO pageParameters);
+        Task<List<GetCertificateRequestDTO>> GetAllForUser(Guid userId);
+        Task<List<GetCertificateRequestDTO>> GetAllForUserPagable(PageParametersDTO pageParameters, Guid userId);
         Task<List<GetCertificateRequestDTO>> GetAllForApproval(Guid guid);
+        Task<List<GetCertificateRequestDTO>> GetAllForApprovalPagable(PageParametersDTO pageParameters, Guid guid);
+
+
     }
     public class CertificateRequestService : ICertificateRequestService
     {
         private readonly ICertificateRequestRepository _certificateRequestRepository;
         private readonly ICertificateRepository _certificateRepository;
         private readonly ICertificateService _certificateService;
+        private readonly IUserService _userService;
 
         public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository, ICertificateService certificateService, 
-            ICertificateRepository certificateRepository)
+            ICertificateRepository certificateRepository, IUserService userService)
         {
             _certificateRequestRepository = certificateRequestRepository;
             _certificateRepository = certificateRepository;
             _certificateService = certificateService;
+            _userService = userService;
         }
 
         public async Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto)
@@ -173,5 +181,30 @@ using Data.Models;
             return requests.Select(x => new GetCertificateRequestDTO(x)).ToList();
 
         }
+
+        public List<GetCertificateRequestDTO> GetAllPagable(PageParametersDTO pageParameters)
+        {
+            List<Data.Models.CertificateRequest> certificateRequests = _certificateRequestRepository.ReadAll().Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize).Take(pageParameters.PageSize).ToList();
+            return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).ToList();
+        }
+
+        public async Task<List<GetCertificateRequestDTO>> GetAllForApprovalPagable(PageParametersDTO pageParameters, Guid guid)
+        {
+            IEnumerable<Certificate> certificates = await _certificateRepository.FindByOwnerId(guid);
+            List<Data.Models.CertificateRequest> requests = new List<Data.Models.CertificateRequest>();
+            foreach (Certificate certificate in certificates)
+            {
+                List<Data.Models.CertificateRequest> foundCertificatesRequests = await _certificateRequestRepository.FindByParentSerialNumber(certificate.SerialNumber);
+                requests.AddRange(foundCertificatesRequests);
+            }
+            return requests.Select(x => new GetCertificateRequestDTO(x)).Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize).Take(pageParameters.PageSize).ToList(); ;
+        }
+        public async Task<List<GetCertificateRequestDTO>> GetAllForUserPagable(PageParametersDTO pageParameters, Guid userId)
+        {
+            List<Data.Models.CertificateRequest> certificateRequests = await _certificateRequestRepository.FindByUserId(userId);
+            return certificateRequests.Select(x => new GetCertificateRequestDTO(x)).Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize).Take(pageParameters.PageSize).ToList();
+        }
+
+
     }
 }

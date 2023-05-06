@@ -1,15 +1,32 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import CertificateRequestCard from "../components/CertificateRequestCard.jsx";
 import axios from "axios";
-import {Box, Grid, Tab, Tabs, Typography} from "@mui/material";
+import {
+    Box,
+    FormControl,
+    Grid,
+    InputLabel,
+    MenuItem,
+    Select,
+    Tab,
+    TablePagination,
+    Tabs,
+    Typography
+} from "@mui/material";
 import { TabPanel, TabContext } from '@mui/lab';
 import {AuthContext} from "../security/AuthContext.jsx";
+import CertificateCard from "../components/CertificateCard.jsx";
 
 
 
 export default function AllCertificateRequests() {
     const [value, setValue] = useState(0);
+    const [page, setPage] = React.useState(0);
+    const [totalCount, setTotalCount] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(1);
+    const [certificateRequests,setCertificateRequests] = React.useState([]);
+
     const { isAuthenticated, role, isLoading } = useContext(AuthContext);
 
 
@@ -29,58 +46,88 @@ export default function AllCertificateRequests() {
     })
 
     const handleChange = (event, newValue) => {
-        setValue(newValue);
+        setValue(newValue.props.value);
+        setPage(0);
+
     };
 
-    const renderPanel = (index) => {
-        switch (index) {
+    const handleChangePage = (
+        event, newPage) => {
+        setPage(newPage);
+    };
+    const handleChangeRowsPerPage = (
+        event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    useEffect(() => {
+        switch (value) {
             case 0:
-                return <>
-                    {certificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
-                        <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {certificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={false}/>)}
-                        </Grid>
-                    </div>
-                    }
-                </>
+                axios.get(`https://localhost:7018/api/CertificateRequest?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                    setTotalCount(res.data.totalCount);
+                    setCertificateRequests(res.data.certificatesRequest)
+                }).catch(err => {
+                    console.log(err)
+                });
+                break;
             case 1:
-                return <>
-                    {approvalCertificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
-                        <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {approvalCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={true}/>)}
-                        </Grid>
-                    </div>
-                    }
-                </>
+                axios.get(`https://localhost:7018/api/CertificateRequest/forApproval?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                    setTotalCount(res.data.totalCount);
+                    setCertificateRequests(res.data.certificatesRequest)
+                }).catch(err => {
+                    console.log(err)
+                });
+                break;
             case 2:
-                return <>
-                    {allCertificateRequestsQuery.isLoading ? <p>Loading...</p> : <div>
-                        <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {allCertificateRequestsQuery.data.map(item => <CertificateRequestCard key={item.id} data={item}  acceptable={false}/>)}
-                        </Grid>
-                    </div>
-                    }
-                </>
-            default:
-                return null;
+                axios.get(`https://localhost:7018/api/CertificateRequest/getAll?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                    setTotalCount(res.data.totalCount);
+                    setCertificateRequests(res.data.certificatesRequest)
+                }).catch(err => {
+                    console.log(err)
+                });
+                break;
         }
-    };
+    },[page,rowsPerPage,value])
 
+    const renderPanel = () => {
+        return <>
+            {certificateRequests.length===0 ? <p>Loading...</p> : <div>
+                <Grid container sx={{bx:3, mt:1}} spacing={25}>
+                    {certificateRequests.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={false}/>)}
+                </Grid>
+            </div>
+            }
+        </>
+
+    };
 
     return <>
         <div style={{textAlign: "center", width: "80%", margin:"auto"}}>
             <h1>Certificate Requests</h1>
-            <TabContext value={value.toString()}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs variant={"fullWidth"} value={value} onChange={handleChange} aria-label="basic tabs example">
-                        <Tab label="Requests for your certificates"/>
-                        <Tab label="Request based on your certificates"/>
-                        {role === "Admin" ? <Tab label="All requests" /> : null}
-                    </Tabs>
-                </Box>
-                {renderPanel(value)}
+            <FormControl >
+                <InputLabel id="demo-simple-select-label">Certificate requests</InputLabel>
+                <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={value}
+                    label="Certificate requests"
+                    onChange={handleChange}>
+                    <MenuItem value={0}>Requests for your certificates</MenuItem>
+                    <MenuItem value={1}>Request based on your certificates</MenuItem>
+                    <MenuItem value={2}>All requests</MenuItem>
+                </Select>
+            </FormControl>
+            {renderPanel()}
+            <TablePagination
+                component="div"
+                count={totalCount}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
 
-            </TabContext>
         </div>
     </>
 }
