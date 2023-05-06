@@ -46,29 +46,15 @@ export default function AllCertificates(){
         setValue(newValue.props.value);
         setPage(0);
     };
-    const renderPanel = (index) => {
-        switch (index) {
-            case 0:
-                return <>
-                    {certificates.length===0 ? <p>Loading...</p> : <div>
-                        <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {certificates.map(item => <CertificateCard key={item.serialNumber} data={item} acceptable={false}/>)}
-                        </Grid>
-                    </div>
-                    }
-                </>
-            case 1:
-                return <>
-                    {certificates.isLoading ? <p>Loading...</p> : <div>
-                        <Grid container sx={{bx:3, mt:1}} spacing={5}>
-                            {certificates.map(item => <CertificateCard key={item.serialNumber} data={item} acceptable={false}/>)}
-                        </Grid>
-                    </div>
-                    }
-                </>
-            default:
-                return null;
-        }
+    const renderPanel = () => {
+        return <>
+            {certificates.length===0 ? <p>Loading...</p> : <div>
+                <Grid container sx={{bx:3, mt:1}} spacing={25}>
+                    {certificates.map(item => <CertificateCard key={item.serialNumber} data={item} acceptable={false}/>)}
+                </Grid>
+            </div>
+            }
+        </>
     };
 
 
@@ -87,7 +73,7 @@ export default function AllCertificates(){
                     <MenuItem value={1}>My Certificates</MenuItem>
                 </Select>
             </FormControl>
-            {renderPanel(value)}
+            {renderPanel()}
             <TablePagination
                 component="div"
                 count={totalCount}
