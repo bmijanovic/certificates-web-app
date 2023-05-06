@@ -47,6 +47,45 @@ namespace CertificatesWebApp.Certificates.Controllers
                 return Forbid("Authentication error!");
             }
         }
+        [HttpGet]
+        [Authorize]
+        [Route("download/{serialNumber}")]
+        public async Task<IActionResult> GetFileById(String serialNumber)
+        {
+            string path = $"Certs/{serialNumber}.crt";
+            if (System.IO.File.Exists(path))
+            {
+                return File(System.IO.File.OpenRead(path), "application/octet-stream", Path.GetFileName(path));
+            }
+            return NotFound();
+        }
+
+
+
+        [HttpGet]
+        [Authorize]
+        [Route("download/key/{serialNumber}")]
+        public async Task<IActionResult> GetKeyById(String serialNumber)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                _certificateService.CheckOwnership(serialNumber,userId);
+                string path = $"Keys/{serialNumber}.key";
+                if (System.IO.File.Exists(path))
+                {
+                    return File(System.IO.File.OpenRead(path), "application/octet-stream", Path.GetFileName(path));
+                }
+                return NotFound();
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
+            
+        }
 
         [HttpPost]
         [Authorize]
@@ -64,7 +103,6 @@ namespace CertificatesWebApp.Certificates.Controllers
                 _certificateService.DeclineCertificate(certificateRequestId,dto.Message);
 
                 return Ok("Certificate declined successfully!");
-               
             }
             else
             {
@@ -80,6 +118,31 @@ namespace CertificatesWebApp.Certificates.Controllers
             GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(serialNumber);
             certificateDTO.Valid = _certificateService.IsValid(serialNumber);
             return Ok(certificateDTO);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("ownership/{serialNumber}")]
+        public async Task<IActionResult> CheckOwnership(String serialNumber)
+        {
+            try {
+                AuthenticateResult result = await HttpContext.AuthenticateAsync();
+                if (result.Succeeded) 
+                {
+                    ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                    String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    _certificateService.CheckOwnership(serialNumber, userId);
+                    return Ok(true);
+                }
+                else
+                {
+                    return Forbid("Authentication error!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(false);
+            }
         }
 
         [HttpPost]
@@ -109,11 +172,31 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpGet]
         [Authorize]
         [Route("")]
-        public async Task<ActionResult<List<Certificate>>> GetAll()
+        public async Task<ActionResult<AllCertificatesDTO>> GetAll([FromQuery] PageParametersDTO pageParameters)
         {
-            return _certificateService.GetAll().ToList();
-        }
+   
+            return new AllCertificatesDTO(_certificateService.GetAll().ToList().Count,_certificateService.GetAllPagable(pageParameters).Select(c=> new GetCertificatePreviewDTO(c,(c.IssuerId!=Guid.Empty)?_userService.Get(c.IssuerId).Name + _userService.Get(c.IssuerId).Surname:"")).ToList());
 
+        }
+        [HttpGet]
+        [Authorize]
+        [Route("my")]
+        public async Task<ActionResult<AllCertificatesDTO>> GetAllByLoggedUser([FromQuery] PageParametersDTO pageParameters)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                IEnumerable<Certificate> certificates = await _certificateService.GetAllByUser(userId);
+                IEnumerable<Certificate> certificatesPageable = await _certificateService.GetAllByUserPagable(pageParameters,userId);
+                return new AllCertificatesDTO(certificates.Count(), certificatesPageable.Select(c => new GetCertificatePreviewDTO(c, (c.IssuerId != Guid.Empty) ? _userService.Get(c.IssuerId).Name + _userService.Get(c.IssuerId).Surname : "")).ToList());
+            }
+            else
+            {
+                return Forbid("Authentication error!");
+            }
+            }
         private void checkUserPermission(String userId, String role, Guid certificateRequestId) 
         {
             CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);

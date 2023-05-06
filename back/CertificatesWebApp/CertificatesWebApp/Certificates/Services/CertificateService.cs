@@ -5,6 +5,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 using CertificatesWebApp.Certificates.DTOs;
 using CertificateRequest = Data.Models.CertificateRequest;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using SendGrid.Helpers.Errors.Model;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -16,8 +20,12 @@ namespace CertificatesWebApp.Users.Services
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
         Boolean IsValid(String serialNumber);
+        public IEnumerable<Certificate> GetAllPagable(PageParametersDTO pageParameters);
+        public Task<IEnumerable<Certificate>> GetAllByUserPagable(PageParametersDTO pageParameters,string userId);
+        public Task<IEnumerable<Certificate>> GetAllByUser(string userId);
         public IEnumerable<Certificate> GetAll();
         GetCertificateDTO makeCertificateDTO(string serialNumber);
+        void CheckOwnership(string serialNumber, string userId);
     }
     public class CertificateService : ICertificateService
     {
@@ -61,7 +69,7 @@ namespace CertificatesWebApp.Users.Services
                 {
                     caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, user.Id, user.Id, algorithm));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true,Guid.Empty, user.Id, algorithm,attributes));
                 }
                 else
                 {
@@ -76,7 +84,7 @@ namespace CertificatesWebApp.Users.Services
                     RandomNumberGenerator.Fill(serialNumber);
                     caCertificate = certificateRequest.Create(issuerCertificate, DateTimeOffset.Now.Date, expDate, serialNumber);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm, attributes));
                 }
                     
                X509Certificate2UI.DisplayCertificate(caCertificate);
@@ -96,7 +104,7 @@ namespace CertificatesWebApp.Users.Services
             request.RejectionReason = rejectionReason;
             _certificateRequestRepository.Update(request);
         }
-        
+
         public Certificate SaveCertificate(Certificate certificate)
         {
             return _certificateRepository.Create(certificate);   
@@ -118,6 +126,20 @@ namespace CertificatesWebApp.Users.Services
         {
             return _certificateRepository.ReadAll();
         }
+        public IEnumerable<Certificate> GetAllPagable(PageParametersDTO pageParameters)
+        {
+            return _certificateRepository.ReadAll().Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize).Take(pageParameters.PageSize);
+        }
+        public async Task<IEnumerable<Certificate>> GetAllByUserPagable(PageParametersDTO pageParameters, string userId)
+        {
+            IEnumerable<Certificate> allCertificates= await _certificateRepository.FindByOwnerId(Guid.Parse(userId));
+            return allCertificates.Skip((pageParameters.PageNumber - 1) * pageParameters.PageSize).Take(pageParameters.PageSize);
+        }
+        public async Task<IEnumerable<Certificate>> GetAllByUser(string userId)
+        {
+            IEnumerable<Certificate> allCertificates = await _certificateRepository.FindByOwnerId(Guid.Parse(userId));
+            return allCertificates;
+        }
 
         public GetCertificateDTO makeCertificateDTO(string serialNumber)
         {
@@ -129,6 +151,12 @@ namespace CertificatesWebApp.Users.Services
             dto.Owner = owner.Name + " " + owner.Surname;
             dto.Issuer = issuer.Name + " " + issuer.Surname;
             return dto;
+        }
+        public void CheckOwnership(string serialNumber, string userId)
+        {
+            Certificate certificate = GetBySerialNumber(serialNumber);
+            if (certificate.OwnerId.ToString()!=userId)
+                throw new NotFoundException("Certificate does not exist!");
         }
 
         private X509KeyUsageFlags getFlags(string exponents)
@@ -149,7 +177,7 @@ namespace CertificatesWebApp.Users.Services
         {
             string common_name = string.Concat("CN=", user.Name, " ", user.Surname);
             string email = string.Concat("E=", user.Email);
-            string telephone = string.Concat("T=", user.Telephone);
+            string telephone = string.Concat("T=", user.Telephone).Replace("+","00");
             return string.Concat(common_name, ";", email, ";", telephone, ";", attributes);
 
         }
