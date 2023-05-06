@@ -1,7 +1,6 @@
 ﻿using Data.Models;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using System.Net.Mail;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -51,7 +50,7 @@ namespace CertificatesWebApp.Users.Services
 
             var dynamicTemplateData = new
             {
-                url_page = "http://localhost:5173/resetPassword?code=" + code,
+                url_page = "http://localhost:5173/passwordReset?code=" + code,
                 user_name = user.Name
             };
 

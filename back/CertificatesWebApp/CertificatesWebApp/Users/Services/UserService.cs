@@ -10,6 +10,7 @@ namespace CertificatesWebApp.Users.Services
         Task<User> CreateUser(UserDTO userDTO);
         User Get(Guid userId);
         Task SendPasswordResetMail(String userEmail);
+        Task SendPasswordResetSMS(String telephone);
     }
     public class UserService : IUserService
     {
@@ -18,16 +19,18 @@ namespace CertificatesWebApp.Users.Services
         private readonly ICredentialsRepository _credentialsRepository;
         private readonly IConfirmationService _confirmationService;
         private readonly IMailService _mailService;
+        private readonly ISMSService _smsService;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
             IConfirmationRepository confirmationrepository, IConfirmationService confirmationService, 
-            IMailService mailService)
+            IMailService mailService, ISMSService smsService)
         {
             _userRepository = userRepository;
             _confirmationService = confirmationService;
             _credentialsRepository = credentialsRepository;
             _confirmationrepository = confirmationrepository;
             _mailService = mailService;
+            _smsService = smsService;
         }
 
         public async Task<User> CreateUser(UserDTO userDTO)
@@ -59,7 +62,13 @@ namespace CertificatesWebApp.Users.Services
 
             try
             {
-                await _mailService.SendActivationMail(user, confirmation.Code);
+                if (userDTO.VerificationType == VerificationType.EMAIL)
+                {
+                    await _mailService.SendActivationMail(user, confirmation.Code);
+                }
+                else {
+                    await _smsService.SendActivationSMS(user, confirmation.Code);
+                }
                 return user;
             }
             catch (Exception ex)
@@ -82,6 +91,19 @@ namespace CertificatesWebApp.Users.Services
                 await _mailService.SendPasswordResetMail(user, confirmation.Code);
             }
 
+        }
+
+        public async Task SendPasswordResetSMS(String telephone) {
+            User user = await _userRepository.FindByTelephone(telephone);
+            if (user == null)
+            {
+                throw new ArgumentException("User with that telephone does not exist!");
+            }
+            else
+            {
+                Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
+                await _smsService.SendPasswordResetSMS(user, confirmation.Code);
+            }
         }
 
         public User Get(Guid userId)

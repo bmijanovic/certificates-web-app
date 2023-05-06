@@ -1,5 +1,6 @@
 ﻿using Data.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CertificatesWebApp.Users.Dtos
 {
@@ -24,6 +25,11 @@ namespace CertificatesWebApp.Users.Dtos
         [Required(ErrorMessage = "Telephone is required.")]
         [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid.")]
         public String Telephone { get; set; }
+
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [Required(ErrorMessage = "Verification type is required.")]
+        public VerificationType VerificationType { get; set; }
 
         public UserDTO(User user)
         {

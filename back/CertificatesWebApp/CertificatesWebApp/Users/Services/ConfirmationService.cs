@@ -13,6 +13,7 @@ namespace CertificatesWebApp.Users.Services
         Task ResetPassword(int code, PasswordResetDTO passwordResetDTO);
         Task<Confirmation> CreateActivationConfirmation(User user);
         Task<Confirmation> CreateResetPasswordConfirmation(User user);
+        Task<bool> ConfirmationExists(int code, ConfirmationType confirmationType);
     }
     public class ConfirmationService : IConfirmationService
     {
@@ -116,6 +117,15 @@ namespace CertificatesWebApp.Users.Services
                 return await GenerateVerificationCode(codeLength);
             }
             return verificationCode;
+        }
+
+        public async Task<bool> ConfirmationExists(int code, ConfirmationType confirmationType) {
+            Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, confirmationType);
+            if (confirmation == null)
+            {
+                return false;
+            }
+            return true;
         }
 
     }

@@ -5,9 +5,18 @@ import {
     Avatar,
     Box,
     Container,
-    CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    CssBaseline,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
     Grid,
     InputLabel,
+    Radio, RadioGroup,
     Stack,
     TextField,
     Typography
@@ -22,6 +31,7 @@ export default function RegisterForm() {
     const [surname, setSurname] = useState("")
     const [telephone, setTelephone] = useState("")
     const [error, setError] = useState("")
+    const [verificationType, setVerificationType] = useState("email");
 
     const navigate = useNavigate()
 
@@ -39,7 +49,8 @@ export default function RegisterForm() {
             surname: surname,
             email: email,
             password: password,
-            telephone: telephone
+            telephone: telephone,
+            verificationType: verificationType
         }).then(res => {
             if (res.status === 200){
                 setDialogOpen(true);
@@ -133,6 +144,20 @@ export default function RegisterForm() {
                     <div>
                         <InputLabel style={{color:"red"}}>{error}</InputLabel>
                     </div>
+                    <FormControl
+                        sx={{mt: 2}}>
+                        <FormLabel id="radio-buttons-group-label">Verify with</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="radio-buttons-group-label"
+                            name="row-radio-buttons-group"
+                            defaultValue="email"
+                            onChange={(e) => {setVerificationType(e.target.value)}}
+                        >
+                            <FormControlLabel value="email" control={<Radio />} label="Email" />
+                            <FormControlLabel value="sms" control={<Radio />} label="SMS" />
+                        </RadioGroup>
+                    </FormControl>
                     <Button
                         type="submit"
                         fullWidth
@@ -164,11 +189,11 @@ export default function RegisterForm() {
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Next step is to open your email inbox and follow activation process from there.
+                    Next step is to open your email or sms inbox and follow activation process from there.
                 </DialogContentText>
             </DialogContent>
             <DialogActions style={{display:"flex", justifyContent:"center"}}>
-                <Button onClick={redirectToLogin} variant="contained">Go to sign in</Button>
+                <Button onClick={redirectToLogin} variant="contained">OK</Button>
             </DialogActions>
         </Dialog>
     </>

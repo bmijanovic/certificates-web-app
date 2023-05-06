@@ -33,6 +33,7 @@ builder.Services.AddTransient<ICertificateRequestService, CertificateRequestServ
 builder.Services.AddTransient<IConfirmationService, ConfirmationService>();
 builder.Services.AddTransient<ICredentialsService, CredentialsService>();
 builder.Services.AddTransient<IMailService, MailService>();
+builder.Services.AddTransient<ISMSService, SMSService>();
 builder.Services.AddTransient<IUserService, UserService>();
 
 //Security

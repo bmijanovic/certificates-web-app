@@ -67,6 +67,14 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpPost]
+        [Route("{telephone}")]
+        public async Task<ActionResult<String>> sendResetPasswordSMS(String telephone)
+        {
+            await _userService.SendPasswordResetSMS(telephone);
+            return Ok("Password reset sms sent successfully!");
+        }
+
+        [HttpPost]
         [Route("{code}")]
         public async Task<ActionResult<String>> resetPassword(int code, PasswordResetDTO passwordResetDTO)
         {
@@ -75,8 +83,20 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpGet]
+        [Route("{code}")]
+        public async Task<ActionResult<String>> doesPasswordResetCodeExists(int code)
+        {
+            bool exists = await _confirmationService.ConfirmationExists(code, ConfirmationType.RESET_PASSWORD);
+            if (exists)
+            {
+                return Ok("Password reset code exists!");
+            }
+            return NotFound("Password reset code does not exist!");
+        }
+
+        [HttpGet]
         [Authorize]
-        public async Task<ActionResult<string>> whoAmIAsync()
+        public async Task<ActionResult<string>> whoAmI()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
