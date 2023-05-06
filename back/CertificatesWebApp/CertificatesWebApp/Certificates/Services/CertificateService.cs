@@ -19,6 +19,7 @@ namespace CertificatesWebApp.Users.Services
         Certificate SaveCertificate(Certificate certificate);
         void SaveCertificateToFileSystem(X509Certificate2 certificate, RSA rsa);
         Certificate GetBySerialNumber(String serialNumber);
+        List<Certificate> GetByParentSerialNumber(String serialNumber);
         Boolean IsValid(String serialNumber);
         public IEnumerable<Certificate> GetAllPagable(PageParametersDTO pageParameters);
         public Task<IEnumerable<Certificate>> GetAllByUserPagable(PageParametersDTO pageParameters,string userId);
@@ -185,6 +186,10 @@ namespace CertificatesWebApp.Users.Services
         public Certificate GetBySerialNumber(String serialNumber) { 
             return _certificateRepository.FindBySerialNumber(serialNumber).Result;
         }
+        public List<Certificate> GetByParentSerialNumber(String serialNumber)
+        {
+            return _certificateRepository.FindByParentSerialNumber(serialNumber).Result;
+        }
 
         public Boolean IsValid(String serialNumber) {
             if (string.IsNullOrEmpty(serialNumber))
@@ -199,6 +204,22 @@ namespace CertificatesWebApp.Users.Services
                 return false;
             }
             return true;
+        }
+
+        public void WithdrawCertificate(string serialNumber)
+        {
+            Certificate certificate = GetBySerialNumber(serialNumber);
+            List<Certificate> certificatesForProcessing=GetByParentSerialNumber(serialNumber);
+            while (certificatesForProcessing.Count > 0)
+            {
+                foreach (Certificate item in certificatesForProcessing)
+                {
+                    item.IsValid = false;
+                    SaveCertificate(item);
+                    certificatesForProcessing.Remove(item);
+                    certificatesForProcessing.AddRange(GetByParentSerialNumber(item.SerialNumber));
+                }
+            }
         }
 
         private void validateCertificate(string issuerSN,User user)
