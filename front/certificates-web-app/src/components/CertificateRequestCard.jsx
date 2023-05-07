@@ -10,6 +10,10 @@ export default function CertificateRequestCard(props) {
     const flagsNames = ["EncipherOnly", "CrlSign", "KeyCertSign", "KeyAgreement", "DataEncipherment", "KeyEncipherment", "NonRepudiation", "DigitalSignature"]
     const [open, setOpen] = useState(false);
     const [reason, setReason] = useState("");
+    const [imageSrcValid, setImageSrcValid] = React.useState("./src/assets/Valid.png");
+    const [imageSrcInvalid, setImageSrcInvalid] = React.useState("./src/assets/Invalid.png");
+    const [imageSrcInProgress, setImageSrcInProgress] = React.useState("./src/assets/InProgress.png");
+
 
     const navigate = useNavigate()
 
@@ -59,11 +63,20 @@ export default function CertificateRequestCard(props) {
         return "".concat(date[2],".",date[1],".",date[0],".")
     }
 
+    function choosePicture() {
+        if(state === "ACCEPTED")
+            return imageSrcValid;
+        else if (state === "REJECTED")
+            return imageSrcInvalid;
+        else
+            return imageSrcInProgress;
+    }
+
 
     return <>
         <Grid item xs={12} sm={6} md={4} style={{paddingTop: "20px"}}>
             <div style={{ display: "flex", alignItems: "center", flexDirection:"column"}}>
-                <div style={{width:150, height:150, backgroundColor:"#146C94", position:"relative", top:75, borderRadius:"20px"}}></div>
+                <img src={choosePicture()} style={{width:180, height:180, position:"relative", top:75, borderRadius:"20px"}} alt={"slika"}/>
                 <Card>
                     <CardContent style={{height:400, width: 250, marginTop: 80}}>
                         <Typography variant="h5" component="h2" style={{textAlign:"center", marginBottom:20}}>

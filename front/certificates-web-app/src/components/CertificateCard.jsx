@@ -79,7 +79,7 @@ export default function CertificateCard(props) {
         queryKey: ["certificateOwnership"],
         queryFn: () => axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => res.data).catch(err => {console.log(err)})});
 
-    console.log(ownershipQuery)
+    // console.log(ownershipQuery)
 
     const style = {
         position: 'absolute',

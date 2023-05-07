@@ -41,16 +41,16 @@ const theme = createTheme({
 });
 
 const router = createBrowserRouter([
-    {path:"/home", element: <ProtectedRoute><Home/></ProtectedRoute>},
+    {path:"/home", element: <ProtectedRoute><Navbar/></ProtectedRoute>},
     {path:"/login", element: <UnregisteredRoute><Login/></UnregisteredRoute>},
     {path:"/register", element: <UnregisteredRoute><Register/></UnregisteredRoute>},
     {path:"/activateAccount", element: <UnregisteredRoute><AccountActivation/></UnregisteredRoute>},
     {path:"/passwordReset", element: <UnregisteredRoute><PasswordReset/></UnregisteredRoute>},
     {path:"/forgotPassword", element: <UnregisteredRoute><ForgotPassword/></UnregisteredRoute>},
-    {path:"/generate", element: <ProtectedRoute><GenerateCertificateRequest/></ProtectedRoute>},
-    {path:"/requests", element: <ProtectedRoute><AllCertificateRequests/></ProtectedRoute>},
-    {path:"/checkValidity", element: <ProtectedRoute><CheckValidity/></ProtectedRoute>},
-    {path:"/certificates", element: <ProtectedRoute><AllCertificates/></ProtectedRoute>},
+    {path:"/generate", element: <ProtectedRoute><Navbar/><GenerateCertificateRequest/></ProtectedRoute>},
+    {path:"/requests", element: <ProtectedRoute><Navbar/><AllCertificateRequests/></ProtectedRoute>},
+    {path:"/checkValidity", element: <ProtectedRoute><Navbar/><CheckValidity/></ProtectedRoute>},
+    {path:"/certificates", element: <ProtectedRoute><Navbar/><AllCertificates/></ProtectedRoute>},
     {path:"*", element: <Navigate to="/home" replace />},
 ])
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -59,7 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <LocalizationProvider dateAdapter={AdapterDayjs}>
               <AuthProvider>
                   <QueryClientProvider client={queryClient}>
-                      <Navbar/>
+
                       <RouterProvider router={router}>
                       </RouterProvider>
                     <ReactQueryDevtools/>

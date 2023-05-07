@@ -11,10 +11,13 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import axios from "axios";
+import {useNavigate} from "react-router-dom";
 export default function Navbar() {
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
-
+    const [value, setValue] = React.useState(0);
+    const navigate = useNavigate()
     const handleOpenNavMenu = (event) => {
         setAnchorElNav(event.currentTarget);
     };
@@ -29,6 +32,43 @@ export default function Navbar() {
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
+
+    const handleCertificatesClick = (event) => {
+        handleCloseNavMenu(event)
+        navigate('/certificates')
+    };
+
+    const handleRequestsClick = (event) => {
+        handleCloseNavMenu(event)
+        navigate('/requests')
+    };
+
+    const handleGenerateClick = (event) => {
+        handleCloseNavMenu(event)
+        navigate('/generate')
+    };
+
+    const handleValidityClick = (event) => {
+        handleCloseNavMenu(event)
+        navigate('/checkValidity')
+    };
+
+    const handleLogoutClick = (event) => {
+        handleCloseNavMenu(event)
+        event.preventDefault()
+
+        axios.post(`https://localhost:7018/api/User/logout`)
+            .then(res => {
+                if (res.status === 200){
+                    navigate(0);
+                }
+            }).catch((error) => {
+            console.log(error);
+        });
+    };
+
+
+
 
     return (
         <AppBar style={{position:"sticky",margin:0}}>
@@ -64,19 +104,19 @@ export default function Navbar() {
                                 display: { xs: 'block', md: 'none' },
                             }}
                         >
-                            <MenuItem key="certificates" onClick={handleCloseNavMenu}>
+                            <MenuItem key="certificates" onClick={handleCertificatesClick}>
                                 <Typography textAlign="center">Certificates</Typography>
                             </MenuItem>
-                            <MenuItem key="requests" onClick={handleCloseNavMenu}>
+                            <MenuItem key="requests" onClick={handleRequestsClick}>
                                 <Typography textAlign="center">Requests</Typography>
                             </MenuItem>
-                            <MenuItem key="generate" onClick={handleCloseNavMenu}>
+                            <MenuItem key="generate" onClick={handleGenerateClick}>
                                 <Typography textAlign="center">Create Certificates</Typography>
                             </MenuItem>
-                            <MenuItem key="validity" onClick={handleCloseNavMenu}>
+                            <MenuItem key="validity" onClick={handleValidityClick}>
                                 <Typography textAlign="center">Check Validity</Typography>
                             </MenuItem>
-                            <MenuItem key="validity" onClick={handleCloseNavMenu}>
+                            <MenuItem key="logout" onClick={handleLogoutClick}>
                                 <Typography textAlign="center">Logout</Typography>
                             </MenuItem>
                         </Menu>
@@ -84,28 +124,28 @@ export default function Navbar() {
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             <Button
                                 key="certificates"
-                                onClick={handleCloseNavMenu}
+                                onClick={handleCertificatesClick}
                                 sx={{ my: 2, color: 'white', display: 'block' }}
                             >
                                 Certificates
                             </Button>
                         <Button
                             key="requests"
-                            onClick={handleCloseNavMenu}
+                            onClick={handleRequestsClick}
                             sx={{ my: 2, color: 'white', display: 'block' }}
                         >
                             Requests
                         </Button>
                         <Button
                             key="generate"
-                            onClick={handleCloseNavMenu}
+                            onClick={handleGenerateClick}
                             sx={{ my: 2, color: 'white', display: 'block' }}
                         >
                             Create Certificate
                         </Button>
                         <Button
                             key="validity"
-                            onClick={handleCloseNavMenu}
+                            onClick={handleValidityClick}
                             sx={{ my: 2, color: 'white', display: 'block' }}
                         >
                             Check Validity
@@ -114,8 +154,8 @@ export default function Navbar() {
 
                     <Box sx={{ flexGrow: 0,display: { xs: 'none', md: 'flex' }  }}>
                         <Button
-                            key="validity"
-                            onClick={handleCloseNavMenu}
+                            key="logout"
+                            onClick={handleLogoutClick}
                             sx={{ my: 2, color: 'white', display: 'block' }}
                         >
                             Logout

@@ -18,5 +18,7 @@ export default function Home() {
         });
     }
 
-    return <><div>Home</div><button onClick={logout}>logout</button></>
+    return <>
+        {/*<div>Home</div><button onClick={logout}>logout</button>*/}
+    </>
 }
