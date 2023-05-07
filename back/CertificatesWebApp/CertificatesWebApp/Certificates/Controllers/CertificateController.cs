@@ -197,6 +197,31 @@ namespace CertificatesWebApp.Certificates.Controllers
                 return Forbid("Authentication error!");
             }
             }
+
+        [HttpGet]
+        [Authorize]
+        [Route("withdraw/{serialNumber}")]
+        public async Task<ActionResult<AllCertificatesDTO>> Withdraw(String serialNumber)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                Certificate certificate = _certificateService.GetBySerialNumber(serialNumber);
+                if (certificate.OwnerId.ToString() != userId)
+                    return NotFound("Certificate does not exist");
+                _certificateService.WithdrawCertificate(serialNumber);
+
+                return NoContent();
+                    
+            }
+            else
+            {
+                return Forbid("Authentication error!");
+            }
+        }
+
         private void checkUserPermission(String userId, String role, Guid certificateRequestId) 
         {
             CertificateRequest request = _certificateRequestService.GetCertificateRequest(certificateRequestId);

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {Box, Card, CardActions, CardContent, Grid, Modal, TextField, Typography} from "@mui/material";
 import Button from "@mui/material/Button";
@@ -16,6 +16,8 @@ export default function CertificateCard(props) {
     certificateType:props.data.certificateType}
     const flagsNames = ["EncipherOnly", "CrlSign", "KeyCertSign", "KeyAgreement", "DataEncipherment", "KeyEncipherment", "NonRepudiation", "DigitalSignature"]
     const [open, setOpen] = React.useState(false);
+    const [isOwner, setIsOwner] = React.useState(false);
+    const [imageSrc, setImageSrc] = React.useState("./src/assets/Valid.png");
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const navigate = useNavigate()
@@ -27,6 +29,15 @@ export default function CertificateCard(props) {
             str += flagsNames[flagNum] + '\n';
         return str
     }
+    useEffect( ()=>{
+        setImageSrc(certificate.isValid?"./src/assets/Valid.png":"./src/assets/Invalid.png");
+        axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => {
+            setIsOwner(res.data)
+        }).catch(err => {
+            console.log(err)
+        });
+
+    },[])
 
     function formatDate(date){
         date=date.split('T')[0].split('-')
@@ -57,9 +68,18 @@ export default function CertificateCard(props) {
             link.click();
         });
     }
+    function withdrawCertificate(){
+        axios.get(`https://localhost:7018/api/Certificate/withdraw/${certificate.serialNumber}`).then(() => {
+            certificate.isValid=false;
+            window.location.reload(false);
+
+        });
+    }
     const ownershipQuery = useQuery({
         queryKey: ["certificateOwnership"],
         queryFn: () => axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => res.data).catch(err => {console.log(err)})});
+
+    console.log(ownershipQuery)
 
     const style = {
         position: 'absolute',
@@ -75,12 +95,13 @@ export default function CertificateCard(props) {
 
 
 
+
     return <>
         <Modal
             open={open}
             onClose={handleClose}>
             <Box sx={style}>
-                <div style={{width:180, height:180, backgroundColor:"#146C94", margin:"0 auto", borderRadius:"20px"}}></div>
+                <img src={imageSrc} style={{width:180, height:180, margin:"0 auto",display:"flex", borderRadius:"20px"}}/>
 
                 <Typography variant="h5" component="h3" style={{textAlign:"center",margin:"0 auto", color:"#146C94"}}>
                     <strong>{certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'CN')?.split('=')[1]}</strong>
@@ -106,20 +127,47 @@ export default function CertificateCard(props) {
                     <span style={{marginBottom:20  }}>Owner</span><br/>
                     <strong style={{fontSize:20,color:"#146C94"}}>{certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'CN')?.split('=')[1]}</strong>
                 </Typography>
+                <div style={{display:"flex"}}>
+
+                    <div style={{flex:"50%"}}>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Email</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("E=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'E')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Organization</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("O=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'O')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+
+                    </div>
+                    <div style={{flex:"50%",marginBottom:20}}>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Phone</span><br/>
+                            <strong>+{certificate.ownerAttributes.includes("T=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'T')?.split('=')[1].substring(2):"NaN"}</strong>
+                        </Typography>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Country</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("C=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'C')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+
+                    </div>
+
+                </div>
                 <div style={{display:"flex", justifyContent:"center"}}>
                     <Button fullWidth variant="contained" color="primary" startIcon={<Download/>}  onClick={downloadCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Certificate</Button>
-                    {ownershipQuery.data===true&&
+                    {isOwner===true&&
                     <Button fullWidth variant="contained" color="primary" startIcon={<Download/>}  onClick={downloadKeyCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Key</Button>
                     }
-                    {ownershipQuery.data===true&&
-                        <Button fullWidth variant="contained" color="primary" startIcon={<Cancel/>} onClick={downloadCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Withdraw</Button>
+                    {isOwner===true&& certificate.isValid&&
+                        <Button fullWidth variant="contained" color="primary" startIcon={<Cancel/>} onClick={withdrawCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Withdraw</Button>
                     }
                 </div>
             </Box>
         </Modal>
         <Grid item xs={12} sm={6} md={4}>
             <div style={{ display: "flex", alignItems: "center", flexDirection:"column"}}>
-                <div style={{width:180, height:180, backgroundColor:"#146C94", position:"relative", top:75, borderRadius:"20px"}}></div>
+                <img src={certificate.isValid?"./src/assets/Valid.png":"./src/assets/Invalid.png"} style={{width:180, height:180, margin:"0 auto",position:"relative",top:75,display:"flex", borderRadius:"20px"}}/>
+
                 <Card>
                     <CardContent style={{height:200, width: 280, marginTop: 80,paddingTop:0}}>
                         <Typography variant="h5" component="h3" style={{textAlign:"center", marginBottom:0, color:"#146C94"}}>

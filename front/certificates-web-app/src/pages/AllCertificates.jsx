@@ -47,8 +47,8 @@ export default function AllCertificates(){
     };
     const renderPanel = () => {
         return <>
-            {certificates.length===0 ? <p>Loading...</p> : <div>
-                <Grid container sx={{bx:3, mt:1}} spacing={25}>
+            {certificates.length===0 ? <p>No certificates to show...</p> : <div>
+                <Grid container sx={{bx:3, mt:1}} columnSpacing={25}>
                     {certificates.map(item => <CertificateCard key={item.serialNumber} data={item} acceptable={false}/>)}
                 </Grid>
             </div>
@@ -60,6 +60,7 @@ export default function AllCertificates(){
     return <>
         <div style={{textAlign: "center", width: "80%", margin:"auto"}}>
             <h1>Certificates</h1>
+        <div style={{display:"flex", justifyContent:"end", width:"100%"}}>
             <FormControl >
                 <InputLabel id="demo-simple-select-label">Certificates</InputLabel>
                 <Select
@@ -72,6 +73,7 @@ export default function AllCertificates(){
                     <MenuItem value={1}>My Certificates</MenuItem>
                 </Select>
             </FormControl>
+        </div>
             {renderPanel()}
             <TablePagination
                 component="div"
