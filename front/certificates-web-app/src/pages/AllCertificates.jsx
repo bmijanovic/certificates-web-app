@@ -1,5 +1,3 @@
-import {AuthContext} from "../security/AuthContext.jsx";
-import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {Box, FormControl, Grid, InputLabel, MenuItem, Select, Tab, TablePagination, Tabs} from "@mui/material";
 import {TabContext} from "@mui/lab";

@@ -17,10 +17,11 @@ import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import CheckValidity from "./pages/CheckValidity.jsx";
-import {createTheme, ThemeProvider} from "@mui/material";
+import {Card, createTheme, ThemeProvider} from "@mui/material";
 import AccountActivation from "./pages/AccountActivation.jsx";
 import AllCertificates from "./pages/AllCertificates.jsx";
 import PasswordReset from "./pages/PasswordReset.jsx";
+import Navbar from "./components/Navbar.jsx";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -52,14 +53,15 @@ const router = createBrowserRouter([
     {path:"/certificates", element: <ProtectedRoute><AllCertificates/></ProtectedRoute>},
     {path:"*", element: <Navigate to="/home" replace />},
 ])
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
       <ThemeProvider theme={theme}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
               <AuthProvider>
                   <QueryClientProvider client={queryClient}>
-                    <RouterProvider router={router}/>
+                      <Navbar/>
+                      <RouterProvider router={router}>
+                      </RouterProvider>
                     <ReactQueryDevtools/>
                   </QueryClientProvider>
               </AuthProvider>
