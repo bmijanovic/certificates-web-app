@@ -16,7 +16,7 @@ namespace Data.Models
         public String SerialNumber { get; set; }
 
         [Column("parent_serial_number")]
-        public String ParentSerialNumber { get; set; }
+        public String? ParentSerialNumber { get; set; }
 
         [Column("start_date")]
         public DateTime StartDate { get; set; }
@@ -42,7 +42,7 @@ namespace Data.Models
         [Column("attributes")]
         public string Attributes{ get; set; }
 
-        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm,string attributes)
+        public Certificate(string serialNumber, DateTime startDate, DateTime endDate, CertificateType certificateType, bool isValid, Guid issuerId, Guid ownerId, String hashAlgorithm,string attributes,string parentSerialNumber)
         {
             
             SerialNumber = serialNumber;

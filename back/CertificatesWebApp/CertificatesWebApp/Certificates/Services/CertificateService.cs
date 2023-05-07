@@ -27,6 +27,7 @@ namespace CertificatesWebApp.Users.Services
         public IEnumerable<Certificate> GetAll();
         GetCertificateDTO makeCertificateDTO(string serialNumber);
         void CheckOwnership(string serialNumber, string userId);
+        void WithdrawCertificate(string serialNumber);
     }
     public class CertificateService : ICertificateService
     {
@@ -70,7 +71,7 @@ namespace CertificatesWebApp.Users.Services
                 {
                     caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true,Guid.Empty, user.Id, algorithm,attributes));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true,Guid.Empty, user.Id, algorithm,attributes,null));
                 }
                 else
                 {
@@ -85,7 +86,7 @@ namespace CertificatesWebApp.Users.Services
                     RandomNumberGenerator.Fill(serialNumber);
                     caCertificate = certificateRequest.Create(issuerCertificate, DateTimeOffset.Now.Date, expDate, serialNumber);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm, attributes));
+                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm, attributes,request.ParentSerialNumber));
                 }
                     
                X509Certificate2UI.DisplayCertificate(caCertificate);
@@ -109,6 +110,10 @@ namespace CertificatesWebApp.Users.Services
         public Certificate SaveCertificate(Certificate certificate)
         {
             return _certificateRepository.Create(certificate);   
+        }
+        public Certificate UpdateCertificate(Certificate certificate)
+        {
+            return _certificateRepository.Update(certificate);
         }
 
         public void SaveCertificateToFileSystem(X509Certificate2 certificate,RSA rsa)
@@ -150,7 +155,8 @@ namespace CertificatesWebApp.Users.Services
             User owner = _userService.Get(certificate.OwnerId);
             User issuer = _userService.Get(certificate.IssuerId);
             dto.Owner = owner.Name + " " + owner.Surname;
-            dto.Issuer = issuer.Name + " " + issuer.Surname;
+            if (issuer != null)
+                dto.Issuer = issuer.Name + " " + issuer.Surname;
             return dto;
         }
         public void CheckOwnership(string serialNumber, string userId)
@@ -195,13 +201,17 @@ namespace CertificatesWebApp.Users.Services
             if (string.IsNullOrEmpty(serialNumber))
                 return false;
             Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
-            if (certificate == null || !certificate.IsValid)
-                return false;
-            if (DateTime.Now > certificate.EndDate)
+            while (certificate != null)
             {
-                certificate.IsValid = false;
-                _certificateRepository.Update(certificate);
-                return false;
+                if (certificate == null || !certificate.IsValid)
+                    return false;
+                if (DateTime.Now > certificate.EndDate)
+                {
+                    certificate.IsValid = false;
+                    _certificateRepository.Update(certificate);
+                    return false;
+                }
+                certificate=_certificateRepository.FindBySerialNumber(certificate.ParentSerialNumber).Result;
             }
             return true;
         }
@@ -209,16 +219,19 @@ namespace CertificatesWebApp.Users.Services
         public void WithdrawCertificate(string serialNumber)
         {
             Certificate certificate = GetBySerialNumber(serialNumber);
-            List<Certificate> certificatesForProcessing=GetByParentSerialNumber(serialNumber);
+            List<Certificate> certificatesForProcessing = new List<Certificate>();
+            certificatesForProcessing.Add(certificate);
+            certificatesForProcessing.AddRange(GetByParentSerialNumber(serialNumber));
             while (certificatesForProcessing.Count > 0)
             {
+                List<Certificate> newCertificatesForProcessing = new List<Certificate>();
                 foreach (Certificate item in certificatesForProcessing)
                 {
                     item.IsValid = false;
-                    SaveCertificate(item);
-                    certificatesForProcessing.Remove(item);
-                    certificatesForProcessing.AddRange(GetByParentSerialNumber(item.SerialNumber));
+                    UpdateCertificate(item);
+                    newCertificatesForProcessing.AddRange(GetByParentSerialNumber(item.SerialNumber));
                 }
+                certificatesForProcessing = newCertificatesForProcessing;
             }
         }
 

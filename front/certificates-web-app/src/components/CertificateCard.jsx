@@ -17,6 +17,7 @@ export default function CertificateCard(props) {
     const flagsNames = ["EncipherOnly", "CrlSign", "KeyCertSign", "KeyAgreement", "DataEncipherment", "KeyEncipherment", "NonRepudiation", "DigitalSignature"]
     const [open, setOpen] = React.useState(false);
     const [isOwner, setIsOwner] = React.useState(false);
+    const [imageSrc, setImageSrc] = React.useState("./src/assets/Valid.png");
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const navigate = useNavigate()
@@ -29,7 +30,7 @@ export default function CertificateCard(props) {
         return str
     }
     useEffect( ()=>{
-
+        setImageSrc(certificate.isValid?"./src/assets/Valid.png":"./src/assets/Invalid.png");
         axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => {
             setIsOwner(res.data)
         }).catch(err => {
@@ -67,6 +68,13 @@ export default function CertificateCard(props) {
             link.click();
         });
     }
+    function withdrawCertificate(){
+        axios.get(`https://localhost:7018/api/Certificate/withdraw/${certificate.serialNumber}`).then(() => {
+            certificate.isValid=false;
+            window.location.reload(false);
+
+        });
+    }
     const ownershipQuery = useQuery({
         queryKey: ["certificateOwnership"],
         queryFn: () => axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => res.data).catch(err => {console.log(err)})});
@@ -93,7 +101,7 @@ export default function CertificateCard(props) {
             open={open}
             onClose={handleClose}>
             <Box sx={style}>
-                <img src={certificate.isValid?"./src/assets/Valid.png":"./src/assets/Invalid.png"} style={{width:180, height:180, margin:"0 auto",display:"flex", borderRadius:"20px"}}/>
+                <img src={imageSrc} style={{width:180, height:180, margin:"0 auto",display:"flex", borderRadius:"20px"}}/>
 
                 <Typography variant="h5" component="h3" style={{textAlign:"center",margin:"0 auto", color:"#146C94"}}>
                     <strong>{certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'CN')?.split('=')[1]}</strong>
@@ -119,13 +127,39 @@ export default function CertificateCard(props) {
                     <span style={{marginBottom:20  }}>Owner</span><br/>
                     <strong style={{fontSize:20,color:"#146C94"}}>{certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'CN')?.split('=')[1]}</strong>
                 </Typography>
+                <div style={{display:"flex"}}>
+
+                    <div style={{flex:"50%"}}>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Email</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("E=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'E')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Organization</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("O=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'O')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+
+                    </div>
+                    <div style={{flex:"50%",marginBottom:20}}>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Phone</span><br/>
+                            <strong>+{certificate.ownerAttributes.includes("T=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'T')?.split('=')[1].substring(2):"NaN"}</strong>
+                        </Typography>
+                        <Typography color="textPrimary" textAlign="center" gutterBottom>
+                            <span >Country</span><br/>
+                            <strong>{certificate.ownerAttributes.includes("C=")?certificate.ownerAttributes.split(';').find(s => s.split('=')[0] === 'C')?.split('=')[1]:"NaN"}</strong>
+                        </Typography>
+
+                    </div>
+
+                </div>
                 <div style={{display:"flex", justifyContent:"center"}}>
                     <Button fullWidth variant="contained" color="primary" startIcon={<Download/>}  onClick={downloadCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Certificate</Button>
                     {isOwner===true&&
                     <Button fullWidth variant="contained" color="primary" startIcon={<Download/>}  onClick={downloadKeyCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Key</Button>
                     }
-                    {isOwner===true&&
-                        <Button fullWidth variant="contained" color="primary" startIcon={<Cancel/>} onClick={downloadCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Withdraw</Button>
+                    {isOwner===true&& certificate.isValid&&
+                        <Button fullWidth variant="contained" color="primary" startIcon={<Cancel/>} onClick={withdrawCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Withdraw</Button>
                     }
                 </div>
             </Box>
