@@ -2,6 +2,7 @@
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
+using System.Linq.Expressions;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -15,20 +16,20 @@ namespace CertificatesWebApp.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfirmationRepository _confirmationrepository;
+        private readonly IConfirmationRepository _confirmationRepository;
         private readonly ICredentialsRepository _credentialsRepository;
         private readonly IConfirmationService _confirmationService;
         private readonly IMailService _mailService;
         private readonly ISMSService _smsService;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
-            IConfirmationRepository confirmationrepository, IConfirmationService confirmationService, 
+            IConfirmationRepository confirmationRepository, IConfirmationService confirmationService, 
             IMailService mailService, ISMSService smsService)
         {
             _userRepository = userRepository;
             _confirmationService = confirmationService;
             _credentialsRepository = credentialsRepository;
-            _confirmationrepository = confirmationrepository;
+            _confirmationRepository = confirmationRepository;
             _mailService = mailService;
             _smsService = smsService;
         }
@@ -74,9 +75,9 @@ namespace CertificatesWebApp.Users.Services
             catch (Exception ex)
             {
                 _userRepository.Delete(user.Id);
-                _confirmationrepository.Delete(confirmation.Id);
+                _confirmationRepository.Delete(confirmation.Id);
                 _credentialsRepository.Delete(credentials.Id);
-                throw new ArgumentException("An error occured!");
+                throw new ArgumentException("An error with SMS or Mail service has occured!");
             }
         }
 
@@ -86,9 +87,18 @@ namespace CertificatesWebApp.Users.Services
             {
                 throw new ArgumentException("User with that email does not exist!");
             }
-            else {
+            else
+            {
                 Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
-                await _mailService.SendPasswordResetMail(user, confirmation.Code);
+                try
+                {
+                    await _mailService.SendPasswordResetMail(user, confirmation.Code);
+                }
+                catch(Exception ex)
+                {
+                    _confirmationRepository.Delete(confirmation.Id);
+                    throw new ArgumentException("An error with Mail service has occured!");
+                }
             }
 
         }
@@ -102,7 +112,15 @@ namespace CertificatesWebApp.Users.Services
             else
             {
                 Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
-                await _smsService.SendPasswordResetSMS(user, confirmation.Code);
+                try
+                {
+                    await _smsService.SendPasswordResetSMS(user, confirmation.Code);
+                }
+                catch (Exception ex)
+                {
+                    _confirmationRepository.Delete(confirmation.Id);
+                    throw new ArgumentException("An error with SMS service has occured!");
+                }
             }
         }
 
