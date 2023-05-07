@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -40,15 +41,16 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         [HttpGet]
         [Authorize()]
-        public async Task<ActionResult<List<GetCertificateRequestDTO>>> GetRequestsForUser()
+        public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForUser([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
             {
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
-                return Ok(requests);
+                List<GetCertificateRequestDTO> allRequests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
+                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUserPagable(pageParameters, Guid.Parse(userId));
+                return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
             }
             else
             {
@@ -59,15 +61,17 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpGet]
         [Route("forApproval")]
         [Authorize()]
-        public async Task<ActionResult<List<GetCertificateRequestDTO>>> GetRequestsForApproval()
+        public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForApproval([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)
             {
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForApproval(Guid.Parse(userId));
-                return Ok(requests);
+                List<GetCertificateRequestDTO> allRequests = await _certificateRequestService.GetAllForApproval(Guid.Parse(userId));
+                List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForApprovalPagable(pageParameters, Guid.Parse(userId));
+
+                return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
             }
             else
             {
@@ -78,10 +82,12 @@ namespace CertificatesWebApp.Certificates.Controllers
         [HttpGet]
         [Route("getAll")]
         [Authorize(Roles = "Admin")]
-        public ActionResult<List<GetCertificateRequestDTO>> GetAllRequests()
+        public ActionResult<List<AllCertificateRequestsDTO>> GetAllRequests([FromQuery] PageParametersDTO pageParameters)
         {
-            List<GetCertificateRequestDTO> requests = _certificateRequestService.GetAll();
-            return Ok(requests);
+            List<GetCertificateRequestDTO> allRequests = _certificateRequestService.GetAll();
+            List<GetCertificateRequestDTO> requests = _certificateRequestService.GetAllPagable(pageParameters);
+
+            return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
         }
 
     }

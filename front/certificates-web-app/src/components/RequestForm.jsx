@@ -85,7 +85,6 @@ export default function RequestForm() {
                     <FormControl sx={{ m: 1, minWidth: 150 }}>
                         <InputLabel id="demo-simple-select-helper-label">Type</InputLabel>
                         <Select value={certificateType} label="Type" onChange={(e) => {setCertificateType(e.target.value)}}>
-                            <MenuItem value=""><em>None</em></MenuItem>
                             {role === "Admin" ? <MenuItem value="Root">Root</MenuItem> : null}
                             <MenuItem value="Intermediate">Intermediate</MenuItem>
                             <MenuItem value="End">End</MenuItem>
@@ -97,7 +96,6 @@ export default function RequestForm() {
                     <FormControl sx={{ m: 1, minWidth: 150 }}>
                         <InputLabel>Hash algorithm</InputLabel>
                         <Select value={hashAlgorithm} label="Hash algorithm" onChange={(e) => {setHashAlgorithm(e.target.value)}}>
-                            <MenuItem value=""><em>None</em></MenuItem>
                             <MenuItem value="MD5">MD5</MenuItem>
                             <MenuItem value="SHA1">SHA1</MenuItem>
                             <MenuItem value="SHA256">SHA256</MenuItem>

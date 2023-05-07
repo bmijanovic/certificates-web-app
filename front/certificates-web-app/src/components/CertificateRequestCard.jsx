@@ -13,6 +13,10 @@ export default function CertificateRequestCard(props) {
 
     const navigate = useNavigate()
 
+    function refreshPage() {
+        window.location.reload(false);
+    }
+
     function makeStringOfFlags(flagsStr) {
         let flagsNumbers = flagsStr.split(",");
         let str = ""
@@ -27,7 +31,8 @@ export default function CertificateRequestCard(props) {
             message: reason
         }).then(res => {
             if (res.status === 200){
-                navigate("/requests");
+                // navigate("/certificates");
+                refreshPage()
             }
         }).catch((error) => {
             console.log(error);
@@ -39,16 +44,24 @@ export default function CertificateRequestCard(props) {
         axios.post("https://localhost:7018/api/Certificate/accept/" + id)
             .then(res => {
             if (res.status === 200){
-                navigate("/requests");
+                // navigate("/certificates");
+                refreshPage()
+
             }
         }).catch((error) => {
             console.log(error);
         });
     }
 
+    function formatDate(date){
+        date=date.split('T')[0].split('-')
+
+        return "".concat(date[2],".",date[1],".",date[0],".")
+    }
+
 
     return <>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={4} style={{paddingTop: "20px"}}>
             <div style={{ display: "flex", alignItems: "center", flexDirection:"column"}}>
                 <div style={{width:150, height:150, backgroundColor:"#146C94", position:"relative", top:75, borderRadius:"20px"}}></div>
                 <Card>

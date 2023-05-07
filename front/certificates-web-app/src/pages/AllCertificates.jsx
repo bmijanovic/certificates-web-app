@@ -10,7 +10,7 @@ export default function AllCertificates(){
     const [value, setValue] = useState(0);
     const [page, setPage] = React.useState(0);
     const [totalCount, setTotalCount] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(1);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [certificates,setCertificates]=React.useState([]);
     const handleChangePage = (
         event, newPage) => {
@@ -39,9 +39,8 @@ export default function AllCertificates(){
                     console.log(err)
                 });
                 break;
-
         }
-    },[page,rowsPerPage])
+    },[page,rowsPerPage,value])
     const handleChange = (event, newValue) => {
         setValue(newValue.props.value);
         setPage(0);
