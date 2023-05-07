@@ -13,6 +13,10 @@ export default function CertificateRequestCard(props) {
 
     const navigate = useNavigate()
 
+    function refreshPage() {
+        window.location.reload(false);
+    }
+
     function makeStringOfFlags(flagsStr) {
         let flagsNumbers = flagsStr.split(",");
         let str = ""
@@ -27,7 +31,8 @@ export default function CertificateRequestCard(props) {
             message: reason
         }).then(res => {
             if (res.status === 200){
-                navigate("/requests");
+                // navigate("/certificates");
+                refreshPage()
             }
         }).catch((error) => {
             console.log(error);
@@ -39,7 +44,9 @@ export default function CertificateRequestCard(props) {
         axios.post("https://localhost:7018/api/Certificate/accept/" + id)
             .then(res => {
             if (res.status === 200){
-                navigate("/requests");
+                // navigate("/certificates");
+                refreshPage()
+
             }
         }).catch((error) => {
             console.log(error);

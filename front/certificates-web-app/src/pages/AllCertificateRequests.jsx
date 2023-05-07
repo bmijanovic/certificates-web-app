@@ -24,8 +24,9 @@ export default function AllCertificateRequests() {
     const [value, setValue] = useState(0);
     const [page, setPage] = React.useState(0);
     const [totalCount, setTotalCount] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(1);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [certificateRequests,setCertificateRequests] = React.useState([]);
+    const [acceptable, setAcceptable] = React.useState(false)
 
     const { isAuthenticated, role, isLoading } = useContext(AuthContext);
 
@@ -67,6 +68,7 @@ export default function AllCertificateRequests() {
                 axios.get(`https://localhost:7018/api/CertificateRequest?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
+                    setAcceptable(false)
                 }).catch(err => {
                     console.log(err)
                 });
@@ -75,6 +77,7 @@ export default function AllCertificateRequests() {
                 axios.get(`https://localhost:7018/api/CertificateRequest/forApproval?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
+                    setAcceptable(true)
                 }).catch(err => {
                     console.log(err)
                 });
@@ -83,6 +86,7 @@ export default function AllCertificateRequests() {
                 axios.get(`https://localhost:7018/api/CertificateRequest/getAll?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
+                    setAcceptable(false)
                 }).catch(err => {
                     console.log(err)
                 });
@@ -94,7 +98,7 @@ export default function AllCertificateRequests() {
         return <>
             {certificateRequests.length===0 ? <p>Loading...</p> : <div>
                 <Grid container sx={{bx:3, mt:1}} spacing={25}>
-                    {certificateRequests.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={false}/>)}
+                    {certificateRequests.map(item => <CertificateRequestCard key={item.id} data={item} acceptable={acceptable}/>)}
                 </Grid>
             </div>
             }
@@ -115,7 +119,9 @@ export default function AllCertificateRequests() {
                     onChange={handleChange}>
                     <MenuItem value={0}>Requests for your certificates</MenuItem>
                     <MenuItem value={1}>Request based on your certificates</MenuItem>
-                    <MenuItem value={2}>All requests</MenuItem>
+                    {
+                        role === "Admin" ? <MenuItem value={2}>All requests</MenuItem> : null
+                    }
                 </Select>
             </FormControl>
             {renderPanel()}
