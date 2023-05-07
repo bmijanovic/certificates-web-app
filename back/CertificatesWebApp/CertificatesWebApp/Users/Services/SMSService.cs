@@ -22,7 +22,7 @@ namespace CertificatesWebApp.Users.Services
             TwilioClient.Init(accountSid, authToken);
 
             var messageOptions = new CreateMessageOptions(new PhoneNumber(user.Telephone));
-            messageOptions.From = new PhoneNumber("+16205268791");
+            messageOptions.From = new PhoneNumber("+12707479566");
             messageOptions.Body = "Click here to activate your account: " + "http://localhost:5173/activateAccount?code=" + code;
 
             var message = await MessageResource.CreateAsync(messageOptions);
