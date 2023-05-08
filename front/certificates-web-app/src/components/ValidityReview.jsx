@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
 import {InputLabel, TextField, Typography} from "@mui/material";
@@ -6,9 +6,14 @@ import Button from "@mui/material/Button";
 
 export default function ValidityReview(props) {
     const { endTime, issuer, owner, serialNumber, startTime, type, valid } = props.data;
+    const [imageSrc, setImageSrc] = React.useState("./src/assets/Valid.png");
+    useEffect(()=>{
+        setImageSrc(valid?"./src/assets/Valid.png":"./src/assets/Invalid.png");
+    },[])
+
     return <>
         <div style={{alignItems:"center", display: "flex", flexDirection:"column", margin: "50px"}}>
-            <div style={{width:150, height:150, backgroundColor:"#146C94", borderRadius:"20px"}}></div>
+            <img src={imageSrc} style={{width:180, height:180, margin:"0 auto",display:"flex", borderRadius:"20px"}}/>
             <div style={{margin:"20px"}}>
                 {
                     valid ? <Typography color="green" variant="h3" component="h2">Valid</Typography> : <Typography color="error" variant="h3" component="h2">Invalid</Typography>

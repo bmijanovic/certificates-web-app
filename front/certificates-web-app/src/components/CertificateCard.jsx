@@ -1,10 +1,11 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {Box, Card, CardActions, CardContent, Grid, Modal, TextField, Typography} from "@mui/material";
 import Button from "@mui/material/Button";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import {Cancel, Download} from "@mui/icons-material";
+import {AuthContext} from "../security/AuthContext.jsx";
 
 export default function CertificateCard(props) {
     const certificate={endDate:props.data.endDate,
@@ -18,6 +19,8 @@ export default function CertificateCard(props) {
     const [open, setOpen] = React.useState(false);
     const [isOwner, setIsOwner] = React.useState(false);
     const [imageSrc, setImageSrc] = React.useState("./src/assets/Valid.png");
+
+    const { isAuthenticated, role, isLoading } = useContext(AuthContext);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const navigate = useNavigate()
@@ -158,7 +161,8 @@ export default function CertificateCard(props) {
                     {isOwner===true&&
                     <Button fullWidth variant="contained" color="primary" startIcon={<Download/>}  onClick={downloadKeyCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Key</Button>
                     }
-                    {isOwner===true&& certificate.isValid&&
+                    {(isOwner===true || role==="Admin")&& certificate.isValid&&
+
                         <Button fullWidth variant="contained" color="primary" startIcon={<Cancel/>} onClick={withdrawCertificate} style={{padding:5,marginLeft:1,marginRight:1}} >Withdraw</Button>
                     }
                 </div>

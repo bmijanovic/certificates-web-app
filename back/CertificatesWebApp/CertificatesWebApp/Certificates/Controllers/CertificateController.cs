@@ -208,8 +208,9 @@ namespace CertificatesWebApp.Certificates.Controllers
             {
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                String role = identity.FindFirst(ClaimTypes.Role).Value;
                 Certificate certificate = _certificateService.GetBySerialNumber(serialNumber);
-                if (certificate.OwnerId.ToString() != userId)
+                if (certificate.OwnerId.ToString() != userId && role!="Admin")
                     return NotFound("Certificate does not exist");
                 _certificateService.WithdrawCertificate(serialNumber);
 

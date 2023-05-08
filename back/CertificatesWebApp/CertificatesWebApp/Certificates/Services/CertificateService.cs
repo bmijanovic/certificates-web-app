@@ -199,7 +199,7 @@ namespace CertificatesWebApp.Users.Services
 
         public Boolean IsValid(String serialNumber) {
             if (string.IsNullOrEmpty(serialNumber))
-                return false;
+                return false;   
             Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
             while (certificate != null)
             {
