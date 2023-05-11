@@ -29,6 +29,9 @@ namespace CertificatesWebApp.Users.Services
             {
                 throw new ArgumentException("User is not activated!");
             }
+            else if (credentials.ExpiratonDate.CompareTo(DateTime.UtcNow) > 0) { 
+                
+            }
             return credentials.User;
         }
     }

@@ -30,7 +30,7 @@ namespace CertificatesWebApp.Users.Controllers
         public async Task<ActionResult<UserDTO>> register(UserDTO userDTO)
         {
             User user = await _userService.CreateUser(userDTO);
-            return Ok(new UserDTO(user));
+            return Ok(new UserSimpleDTO(user));
         }
 
         [HttpPost]

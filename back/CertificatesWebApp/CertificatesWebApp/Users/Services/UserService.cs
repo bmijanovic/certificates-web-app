@@ -2,7 +2,7 @@
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
-using System.Linq.Expressions;
+using System.ComponentModel.DataAnnotations;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -36,13 +36,44 @@ namespace CertificatesWebApp.Users.Services
 
         public async Task<User> CreateUser(UserDTO userDTO)
         {
-            if (await _userRepository.FindByEmail(userDTO.Email) != null)
+            List<ValidationResult> validationResults = new List<ValidationResult>();
+            bool isValid = Validator.TryValidateObject(userDTO, new ValidationContext(userDTO, null, null), validationResults, true);
+            if (!isValid)
             {
-                throw new ArgumentException("User with that email already exists!");
+                foreach (var validationResult in validationResults)
+                {
+                    throw new ArgumentException(validationResult.ErrorMessage);
+                }
             }
-            else if (await _userRepository.FindByTelephone(userDTO.Telephone) != null)
+
+            User potentialUser = await _userRepository.FindByEmail(userDTO.Email);
+            if (potentialUser != null)
             {
-                throw new ArgumentException("User with that telephone already exists!");
+                Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
+                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
+                {
+                    _confirmationRepository.Delete(potentialUserConfirmation.Id);
+                    _userRepository.Delete(potentialUserConfirmation.User.Id);
+                }
+                else
+                {
+                    throw new ArgumentException("User with that email already exists!");
+                }
+            }
+
+            potentialUser = await _userRepository.FindByTelephone(userDTO.Telephone);
+            if (potentialUser != null)
+            {
+                Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
+                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
+                {
+                    _confirmationRepository.Delete(potentialUserConfirmation.Id);
+                    _userRepository.Delete(potentialUserConfirmation.User.Id);
+                }
+                else
+                {
+                    throw new ArgumentException("User with that telephone already exists!");
+                }
             }
 
             User user = new User();
@@ -72,7 +103,7 @@ namespace CertificatesWebApp.Users.Services
                 }
                 return user;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _userRepository.Delete(user.Id);
                 _confirmationRepository.Delete(confirmation.Id);
@@ -94,7 +125,7 @@ namespace CertificatesWebApp.Users.Services
                 {
                     await _mailService.SendPasswordResetMail(user, confirmation.Code);
                 }
-                catch(Exception ex)
+                catch (Exception)
                 {
                     _confirmationRepository.Delete(confirmation.Id);
                     throw new ArgumentException("An error with Mail service has occured!");
@@ -107,7 +138,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByTelephone(telephone);
             if (user == null)
             {
-                throw new ArgumentException("User with that telephone does not exist!");
+                throw new ArgumentException("User with that telephone number does not exist!");
             }
             else
             {
@@ -116,7 +147,7 @@ namespace CertificatesWebApp.Users.Services
                 {
                     await _smsService.SendPasswordResetSMS(user, confirmation.Code);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     _confirmationRepository.Delete(confirmation.Id);
                     throw new ArgumentException("An error with SMS service has occured!");
