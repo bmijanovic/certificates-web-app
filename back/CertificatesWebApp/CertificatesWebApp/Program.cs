@@ -1,5 +1,5 @@
 using CertificatesWebApp.Certificates.Repositories;
-using CertificatesWebApp.Infrastructure;
+using CertificatesWebApp.Exceptions;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;

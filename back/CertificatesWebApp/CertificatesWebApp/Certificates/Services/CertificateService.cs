@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using SendGrid.Helpers.Errors.Model;
+using CertificatesWebApp.Exceptions;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -150,7 +151,7 @@ namespace CertificatesWebApp.Users.Services
         public GetCertificateDTO makeCertificateDTO(string serialNumber)
         {
             Certificate certificate = _certificateRepository.FindBySerialNumber(serialNumber).Result;
-            if (certificate == null) throw new ArgumentException("Certificate does not exist!");
+            if (certificate == null) throw new InvalidInputException("Certificate does not exist!");
             GetCertificateDTO dto = new GetCertificateDTO(certificate);
             User owner = _userService.Get(certificate.OwnerId);
             User issuer = _userService.Get(certificate.IssuerId);
@@ -163,7 +164,7 @@ namespace CertificatesWebApp.Users.Services
         {
             Certificate certificate = GetBySerialNumber(serialNumber);
             if (certificate.OwnerId.ToString()!=userId)
-                throw new NotFoundException("Certificate does not exist!");
+                throw new ResourceNotFoundException("Certificate does not exist!");
         }
 
         private X509KeyUsageFlags getFlags(string exponents)

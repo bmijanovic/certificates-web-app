@@ -1,4 +1,5 @@
-﻿using CertificatesWebApp.Infrastructure;
+﻿using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
@@ -42,7 +43,7 @@ namespace CertificatesWebApp.Users.Services
             {
                 foreach (var validationResult in validationResults)
                 {
-                    throw new ArgumentException(validationResult.ErrorMessage);
+                    throw new InvalidInputException(validationResult.ErrorMessage);
                 }
             }
 
@@ -57,7 +58,7 @@ namespace CertificatesWebApp.Users.Services
                 }
                 else
                 {
-                    throw new ArgumentException("User with that email already exists!");
+                    throw new InvalidInputException("User with that email already exists!");
                 }
             }
 
@@ -72,7 +73,7 @@ namespace CertificatesWebApp.Users.Services
                 }
                 else
                 {
-                    throw new ArgumentException("User with that telephone already exists!");
+                    throw new InvalidInputException("User with that telephone already exists!");
                 }
             }
 
@@ -108,7 +109,7 @@ namespace CertificatesWebApp.Users.Services
                 _userRepository.Delete(user.Id);
                 _confirmationRepository.Delete(confirmation.Id);
                 _credentialsRepository.Delete(credentials.Id);
-                throw new ArgumentException("An error with SMS or Mail service has occured!");
+                throw new InvalidInputException("An error with SMS or Mail service has occured!");
             }
         }
 
@@ -116,7 +117,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByEmail(userEmail);
             if (user == null)
             {
-                throw new ArgumentException("User with that email does not exist!");
+                throw new InvalidInputException("User with that email does not exist!");
             }
             else
             {
@@ -128,7 +129,7 @@ namespace CertificatesWebApp.Users.Services
                 catch (Exception)
                 {
                     _confirmationRepository.Delete(confirmation.Id);
-                    throw new ArgumentException("An error with Mail service has occured!");
+                    throw new InvalidInputException("An error with Mail service has occured!");
                 }
             }
 
@@ -138,7 +139,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByTelephone(telephone);
             if (user == null)
             {
-                throw new ArgumentException("User with that telephone number does not exist!");
+                throw new InvalidInputException("User with that telephone number does not exist!");
             }
             else
             {
@@ -150,7 +151,7 @@ namespace CertificatesWebApp.Users.Services
                 catch (Exception)
                 {
                     _confirmationRepository.Delete(confirmation.Id);
-                    throw new ArgumentException("An error with SMS service has occured!");
+                    throw new InvalidInputException("An error with SMS service has occured!");
                 }
             }
         }
