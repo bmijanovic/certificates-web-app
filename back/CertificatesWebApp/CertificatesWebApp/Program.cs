@@ -5,6 +5,7 @@ using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
            options.Cookie.MaxAge = options.ExpireTimeSpan;
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
        });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("TwoFactorPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(ClaimTypes.AuthorizationDecision, "Confirmed");
+    });
+});
 
 
 var app = builder.Build();

@@ -39,11 +39,13 @@ namespace CertificatesWebApp.Users.Controllers
             ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            identity.AddClaim(new Claim(ClaimTypes.AuthorizationDecision, "Unconfirmed"));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
             return Ok("Logged in successfully!");
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<String>> logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -52,16 +54,59 @@ namespace CertificatesWebApp.Users.Controllers
 
         [HttpPost]
         [Route("{code}")]
-        public async Task<ActionResult<String>> activateAccount(int code){
+        public async Task<ActionResult<String>> activateAccount(int code)
+        {
             await _confirmationService.ActivateAccount(code);
             return Ok("Account activated successfully!");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{email}")]
+        public async Task<ActionResult<String>> sendTwoFactorMail(String email)
+        {
+            await _credentialsService.SendTwoFactorMail(email);
+            return Ok("Two-factor mail sent successfully!");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{telephone}")]
+        public async Task<ActionResult<String>> sendTwoFactorSMS(String telephone)
+        {
+            await _credentialsService.SendTwoFactorSMS(telephone);
+            return Ok("Two-factor SMS sent successfully!");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{code}")]
+        public async Task<ActionResult<String>> twoFactorVerify(int code)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+
+                Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+                await _confirmationService.VerifyTwoFactor(Guid.Parse(userClaim.Value), code);
+
+                identity.TryRemoveClaim(identity.FindFirst(ClaimTypes.AuthorizationDecision));
+                identity.AddClaim(new Claim(ClaimTypes.AuthorizationDecision, "Confirmed"));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                return Ok("Two-factor verified successfully!");
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
         }
 
         [HttpPost]
         [Route("{email}")]
         public async Task<ActionResult<String>> sendResetPasswordMail(String email)
         {
-            await _userService.SendPasswordResetMail(email);
+            await _credentialsService.SendPasswordResetMail(email);
             return Ok("Password reset mail sent successfully!");
         }
 
@@ -69,8 +114,8 @@ namespace CertificatesWebApp.Users.Controllers
         [Route("{telephone}")]
         public async Task<ActionResult<String>> sendResetPasswordSMS(String telephone)
         {
-            await _userService.SendPasswordResetSMS(telephone);
-            return Ok("Password reset sms sent successfully!");
+            await _credentialsService.SendPasswordResetSMS(telephone);
+            return Ok("Password reset SMS sent successfully!");
         }
 
         [HttpPost]
@@ -94,7 +139,7 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Policy = "TwoFactorPolicy")]
         public async Task<ActionResult<string>> whoAmI()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
