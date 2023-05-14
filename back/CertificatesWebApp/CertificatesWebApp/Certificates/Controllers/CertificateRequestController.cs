@@ -18,7 +18,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult> MakeRequestForCertificate([FromBody] CertificateRequestDTO dto)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -39,7 +39,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForUser([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -59,7 +59,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         [HttpGet]
         [Route("forApproval")]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForApproval([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -80,7 +80,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         [HttpGet]
         [Route("getAll")]
-        [Authorize(Roles = "Admin", Policy = "TwoFactorPolicy")]
+        [Authorize(Roles = "Admin", Policy = "AuthorizationPolicy")]
         public ActionResult<List<AllCertificateRequestsDTO>> GetAllRequests([FromQuery] PageParametersDTO pageParameters)
         {
             List<GetCertificateRequestDTO> allRequests = _certificateRequestService.GetAll();

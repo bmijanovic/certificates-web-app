@@ -39,7 +39,8 @@ namespace CertificatesWebApp.Users.Controllers
             ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            identity.AddClaim(new Claim(ClaimTypes.AuthorizationDecision, "Unconfirmed"));
+            identity.AddClaim(new Claim("TwoFactor", "Unconfirmed"));
+            identity.AddClaim(new Claim("PasswordExpired", (await _credentialsService.IsPasswordExpired(user.Id)).ToString()));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
             return Ok("Logged in successfully!");
         }
@@ -91,8 +92,8 @@ namespace CertificatesWebApp.Users.Controllers
                 Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
                 await _confirmationService.VerifyTwoFactor(Guid.Parse(userClaim.Value), code);
 
-                identity.TryRemoveClaim(identity.FindFirst(ClaimTypes.AuthorizationDecision));
-                identity.AddClaim(new Claim(ClaimTypes.AuthorizationDecision, "Confirmed"));
+                identity.TryRemoveClaim(identity.FindFirst("TwoFactor"));
+                identity.AddClaim(new Claim("TwoFactor", "Confirmed"));
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
                 return Ok("Two-factor verified successfully!");
             }
@@ -139,7 +140,7 @@ namespace CertificatesWebApp.Users.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult<string>> whoAmI()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();

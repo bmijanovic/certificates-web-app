@@ -5,6 +5,7 @@ using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,12 +66,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("TwoFactorPolicy", policy =>
+    options.AddPolicy("AuthorizationPolicy", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim(ClaimTypes.AuthorizationDecision, "Confirmed");
+        policy.RequireClaim("TwoFactor", "Confirmed");
+        policy.RequireClaim("PasswordExpired", "False");
     });
 });
+
+builder.Services.AddSingleton<
+    IAuthorizationMiddlewareResultHandler, AuthorizationMiddleware>();
 
 
 var app = builder.Build();

@@ -27,7 +27,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("accept/{certificateRequestId}")]
         public async Task<ActionResult<String>> AcceptCertificateAsync(Guid certificateRequestId)
         {
@@ -49,7 +49,7 @@ namespace CertificatesWebApp.Certificates.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("download/{serialNumber}")]
         public async Task<IActionResult> GetFileById(String serialNumber)
         {
@@ -64,7 +64,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("download/key/{serialNumber}")]
         public async Task<IActionResult> GetKeyById(String serialNumber)
         {
@@ -89,7 +89,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("decline/{certificateRequestId}")]
         public async Task<ActionResult<string>> DeclineCertificateAsync(Guid certificateRequestId, [FromBody] MessageDTO dto)
         {
@@ -112,7 +112,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("checkValidity/{serialNumber}")]
         public ActionResult<GetCertificateDTO> CheckValidityCertificate(String serialNumber)
         {
@@ -122,7 +122,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("ownership/{serialNumber}")]
         public async Task<IActionResult> CheckOwnership(String serialNumber)
         {
@@ -147,7 +147,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("checkValidity")]
         public ActionResult<GetCertificateDTO> CheckValidityCertificate(IFormFile certificate)
         {
@@ -171,7 +171,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("")]
         public async Task<ActionResult<AllCertificatesDTO>> GetAll([FromQuery] PageParametersDTO pageParameters)
         {
@@ -180,7 +180,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         }
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("my")]
         public async Task<ActionResult<AllCertificatesDTO>> GetAllByLoggedUser([FromQuery] PageParametersDTO pageParameters)
         {
@@ -200,7 +200,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "TwoFactorPolicy")]
+        [Authorize(Policy = "AuthorizationPolicy")]
         [Route("withdraw/{serialNumber}")]
         public async Task<ActionResult<AllCertificatesDTO>> Withdraw(String serialNumber)
         {

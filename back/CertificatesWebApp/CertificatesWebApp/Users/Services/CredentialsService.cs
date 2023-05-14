@@ -8,6 +8,7 @@ namespace CertificatesWebApp.Users.Services
     public interface ICredentialsService : IService<Credentials>
     {
         Task<User> Authenticate(String email, String password);
+        Task<bool> IsPasswordExpired(Guid userId);
         Task SendPasswordResetMail(String userEmail);
         Task SendPasswordResetSMS(String telephone);
         Task SendTwoFactorMail(String userEmail);
@@ -47,6 +48,10 @@ namespace CertificatesWebApp.Users.Services
             }
 
             return credentials.User;
+        }
+
+        public async Task<bool> IsPasswordExpired(Guid userId) { 
+            return ((await _credentialsRepository.FindByUserId(userId)).ExpiratonDate.CompareTo(DateTime.UtcNow) <= 0);
         }
 
         public async Task SendPasswordResetMail(String userEmail)
