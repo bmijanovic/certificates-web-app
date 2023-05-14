@@ -10,7 +10,7 @@ namespace CertificatesWebApp.Infrastructure
             {
                 ArgumentException => HttpStatusCode.BadRequest,
                 KeyNotFoundException => HttpStatusCode.NotFound,
-                _ => HttpStatusCode.InternalServerError
+                //_ => HttpStatusCode.InternalServerError
             };
 
         internal static async Task WriteJsonToHttpResponseAsync<TResponse>(HttpResponse httpResponse, HttpStatusCode statusCode, TResponse response)

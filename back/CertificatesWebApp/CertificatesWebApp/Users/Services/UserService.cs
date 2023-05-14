@@ -2,7 +2,9 @@
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
+using Microsoft.AspNetCore.Authentication;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -12,6 +14,8 @@ namespace CertificatesWebApp.Users.Services
         User Get(Guid userId);
         Task SendPasswordResetMail(String userEmail);
         Task SendPasswordResetSMS(String telephone);
+
+        void GoogleAuthentication(AuthenticateResult result);
     }
     public class UserService : IUserService
     {
@@ -127,6 +131,18 @@ namespace CertificatesWebApp.Users.Services
         public User Get(Guid userId)
         {
             return _userRepository.Read(userId);
+        }
+
+        public void GoogleAuthentication(AuthenticateResult result)
+        {
+            if (!result.Succeeded)
+            {
+                throw new InvalidInputException("Authentication failed.");
+            }
+
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = result.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var phone = result.Principal.FindFirst(ClaimTypes.OtherPhone)?.Value;
         }
     }
 }

@@ -3,6 +3,7 @@ using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -109,6 +110,37 @@ namespace CertificatesWebApp.Users.Controllers
             {
                 return BadRequest("Cookie error");
             }
+        }
+        [HttpGet("/signin-google")]
+        public IActionResult Login2()
+        {
+            var redirectUrl = Url.Action("GoogleCallback");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+        [HttpGet]
+        [Route("/auth/google/callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
+            {
+                return BadRequest("Authentication failed.");
+            }
+
+            var email = authenticateResult.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = authenticateResult.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var phone = authenticateResult.Principal.FindFirst(ClaimTypes.OtherPhone)?.Value;
+            Console.WriteLine(phone);
+
+            // Here, you can create a new user in your system or log in an existing user.
+            // For example:
+            // var user = await _userService.FindOrCreateUserAsync(email, name);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticateResult.Principal);
+
+            return LocalRedirect("/");
         }
     }
 }
