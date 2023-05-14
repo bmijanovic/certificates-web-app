@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Authorization.Policy;
+using System.Text.Json;
 
 public class AuthorizationMiddleware : IAuthorizationMiddlewareResultHandler
 {
@@ -12,22 +13,36 @@ public class AuthorizationMiddleware : IAuthorizationMiddlewareResultHandler
         AuthorizationPolicy policy,
         PolicyAuthorizationResult authorizeResult)
     {
-        // If the authorization was forbidden and the resource had a specific requirement,
-        // provide a custom 404 response.
+
         if (authorizeResult.Forbidden && authorizeResult.AuthorizationFailure!.FailedRequirements
             .OfType<ClaimsAuthorizationRequirement>().Any(failedClaim => failedClaim.ClaimType == "TwoFactor"))
         {
-            // Return a 404 to make it appear as if the resource doesn't exist.
-            context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+
+            String reason = "TwoFactor";
+            await context.Response.WriteAsJsonAsync(new { reason }, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
             return;
         }
         else if (authorizeResult.Forbidden && authorizeResult.AuthorizationFailure!.FailedRequirements
-            .OfType<ClaimsAuthorizationRequirement>().Any(failedClaim => failedClaim.ClaimType == "PasswordExpired")) {
-            context.Response.StatusCode = StatusCodes.Status406NotAcceptable;
+            .OfType<ClaimsAuthorizationRequirement>().Any(failedClaim => failedClaim.ClaimType == "PasswordExpired"))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+
+            String reason = "PasswordExpired";
+            await context.Response.WriteAsJsonAsync(new { reason }, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
             return;
         }
 
-        // Fall back to the default implementation.
         await defaultHandler.HandleAsync(next, context, policy, authorizeResult);
     }
 }
