@@ -23,6 +23,7 @@ import AllCertificates from "./pages/AllCertificates.jsx";
 import PasswordReset from "./pages/PasswordReset.jsx";
 import Navbar from "./components/Navbar.jsx";
 import TwoFactorVerification from "./pages/TwoFactorVerification.jsx";
+import PasswordExpired from "./pages/PasswordExpired.jsx";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
     {path:"/passwordReset", element: <UnauthenticatedRoute><PasswordReset/></UnauthenticatedRoute>},
     {path:"/forgotPassword", element: <UnauthenticatedRoute><ForgotPassword/></UnauthenticatedRoute>},
     {path:"/twoFactor", element: <TwoFactorVerification/>},
+    {path:"/passwordExpired", element: <PasswordExpired/>},
     {path:"/home", element: <AuthenticatedRoute><Navbar/></AuthenticatedRoute>},
     {path:"/generate", element: <AuthenticatedRoute><Navbar/><GenerateCertificateRequest/></AuthenticatedRoute>},
     {path:"/requests", element: <AuthenticatedRoute><Navbar/><AllCertificateRequests/></AuthenticatedRoute>},

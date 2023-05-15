@@ -10,7 +10,7 @@ export const AuthenticatedRoute = ({ children }) => {
     }
 
     if (isAuthenticated && isTwoFactorVerified && isPasswordExpired) {
-        //navigate to reset password
+        return <Navigate to="/passwordExpired" />;
     }
     else if (isAuthenticated && !isTwoFactorVerified){
         return <Navigate to="/twoFactor" />;

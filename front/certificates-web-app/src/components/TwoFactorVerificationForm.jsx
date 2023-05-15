@@ -58,7 +58,7 @@ export default function TwoFactorVerificationForm() {
                 }}
             >
                 <Typography component="h1" variant="h3">
-                    Two factor authentication
+                    Two factor verification
                 </Typography>
 
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
@@ -92,20 +92,25 @@ export default function TwoFactorVerificationForm() {
             aria-describedby="alert-dialog-description"
         >
             <DialogTitle id="alert-dialog-title">
-                {"Verification code sent to your " + verificationType + "!"}
+                {"Verification code is sent to your " + verificationType + " inbox!"}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description"
                 sx={{mb:1}}>
                     Please enter your two factor verification code:
                 </DialogContentText>
+
                 <TextField
-                    required
-                    fullWidth
                     id="Code"
                     name="Code"
+                    type="number"
+                    onInput = {(e) =>{
+                        e.target.value = Math.max(0, parseInt(e.target.value) ).toString().slice(0,8)
+                    }}
+                    InputProps={{style: {fontSize: 30, width: 180}}}
                     onChange={(e) => {setCode(e.target.value)}}
                 />
+
             </DialogContent>
             <DialogActions style={{display:"flex", justifyContent:"center"}}>
                 <Button onClick={verifyCode} variant="contained">Confirm</Button>

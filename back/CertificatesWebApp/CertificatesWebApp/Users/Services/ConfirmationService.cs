@@ -11,6 +11,7 @@ namespace CertificatesWebApp.Users.Services
     {
         Task ActivateAccount(int code);
         Task ResetPassword(int code, PasswordResetDTO passwordResetDTO);
+        Task ResetPassword(Guid userId, PasswordResetDTO passwordResetDTO);
         Task VerifyTwoFactor(Guid userId, int code);
         Task<Confirmation> CreateActivationConfirmation(Guid userId);
         Task<Confirmation> CreateResetPasswordConfirmation(Guid userId);
@@ -80,6 +81,18 @@ namespace CertificatesWebApp.Users.Services
                 _confirmationRepository.Delete(confirmation.Id);
                 throw new ResourceNotFoundException("Password reset code expired!");
             }
+        }
+
+        public async Task ResetPassword(Guid userId, PasswordResetDTO passwordResetDTO) {
+            if (passwordResetDTO.Password != passwordResetDTO.PasswordConfirmation)
+            {
+                throw new InvalidInputException("Passwords are not same!");
+            }
+
+            Credentials credentials = await _credentialsRepository.FindByUserId(userId);
+            credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
+            credentials.ExpiratonDate = DateTime.Now.AddDays(30);
+            _credentialsRepository.Update(credentials);
         }
 
         public async Task VerifyTwoFactor(Guid userId, int code) {

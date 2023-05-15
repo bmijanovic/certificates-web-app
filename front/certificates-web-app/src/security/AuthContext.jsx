@@ -32,10 +32,13 @@ export const AuthProvider = ({ children }) => {
             .catch((error) => {
                 if (error.response.status === 403 && error.response.data.reason === "TwoFactor"){
                     setIsAuthenticated(true);
+                    setIsTwoFactorVerified(false);
+                    setIsPasswordExpired(true);
                 }
                 else if (error.response.status === 403 && error.response.data.reason === "PasswordExpired"){
                     setIsAuthenticated(true);
                     setIsTwoFactorVerified(true);
+                    setIsPasswordExpired(true);
                 }
                 setIsLoading(false);
             });

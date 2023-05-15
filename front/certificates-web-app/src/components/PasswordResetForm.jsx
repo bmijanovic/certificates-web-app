@@ -22,9 +22,8 @@ export default function PasswordResetForm() {
     const [codeExists, setCodeExists] = useState(null)
     const [error, setError] = useState("")
 
-    const navigate = useNavigate()
-
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const navigate = useNavigate()
 
     function checkIfCodeExists(code) {
         axios.get(environment + `/api/User/doesPasswordResetCodeExists/` + code)
@@ -91,7 +90,7 @@ export default function PasswordResetForm() {
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label="New password"
                             type="password"
                             id="password"
                             autoComplete="current-password"
@@ -103,7 +102,7 @@ export default function PasswordResetForm() {
                         required
                         fullWidth
                         name="passwordConfirmation"
-                        label="Password confrimation"
+                        label="Confirm new password"
                         type="password"
                         id="passwordConfirmation"
                         autoComplete="current-password"

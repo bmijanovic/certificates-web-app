@@ -66,25 +66,24 @@ namespace CertificatesWebApp.Users.Controllers
         public async Task<ActionResult<String>> sendTwoFactor(VerificationType verificationType)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
-            if (result.Succeeded)
-            {
-                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
-                User user = _userService.Get(Guid.Parse(userClaim.Value));
-
-                if (verificationType == VerificationType.SMS)
-                {
-                    await _credentialsService.SendTwoFactorSMS(user.Telephone);
-                }
-                else {
-                    await _credentialsService.SendTwoFactorMail(user.Email);
-                }
-                return Ok("Two-factor code sent successfully!");
-            }
-            else
+            if (!result.Succeeded)
             {
                 return BadRequest("Cookie error");
             }
+
+            ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+            Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+            User user = _userService.Get(Guid.Parse(userClaim.Value));
+
+            if (verificationType == VerificationType.SMS)
+            {
+                await _credentialsService.SendTwoFactorSMS(user.Telephone);
+            }
+            else
+            {
+                await _credentialsService.SendTwoFactorMail(user.Email);
+            }
+            return Ok("Two-factor code sent successfully!");
         }
 
         [HttpPost]
@@ -111,22 +110,19 @@ namespace CertificatesWebApp.Users.Controllers
         public async Task<ActionResult<String>> verifyTwoFactor(int code)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
-            if (result.Succeeded)
-            {
-                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-
-                Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
-                await _confirmationService.VerifyTwoFactor(Guid.Parse(userClaim.Value), code);
-
-                identity.TryRemoveClaim(identity.FindFirst("TwoFactor"));
-                identity.AddClaim(new Claim("TwoFactor", "Confirmed"));
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-                return Ok("Two-factor verified successfully!");
-            }
-            else
+            if (!result.Succeeded)
             {
                 return BadRequest("Cookie error");
             }
+            ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+
+            Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+            await _confirmationService.VerifyTwoFactor(Guid.Parse(userClaim.Value), code);
+
+            identity.TryRemoveClaim(identity.FindFirst("TwoFactor"));
+            identity.AddClaim(new Claim("TwoFactor", "Confirmed"));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            return Ok("Two-factor verified successfully!");
         }
 
         [HttpPost]
@@ -153,16 +149,42 @@ namespace CertificatesWebApp.Users.Controllers
             return Ok("Password reset successfully!");
         }
 
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<String>> resetPassword(PasswordResetDTO passwordResetDTO)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (!result.Succeeded)
+            {
+                return BadRequest("Cookie error");
+            }
+
+            ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+            Claim twoFactorClaim = identity.FindFirst("TwoFactor");
+
+            if (twoFactorClaim.Value == "Unconfirmed") {
+                return BadRequest("You are not two factor verified");
+            }
+
+            Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+            await _confirmationService.ResetPassword(Guid.Parse(userClaim.Value), passwordResetDTO);
+            identity.TryRemoveClaim(identity.FindFirst("PasswordExpired"));
+            identity.AddClaim(new Claim("PasswordExpired", "False"));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            return Ok("Password reset successfully!");
+        }
+
         [HttpGet]
         [Route("{code}")]
         public async Task<ActionResult<String>> doesPasswordResetCodeExists(int code)
         {
             bool exists = await _confirmationService.ConfirmationExists(code, ConfirmationType.RESET_PASSWORD);
-            if (exists)
+            if (!exists)
             {
-                return Ok("Password reset code exists!");
+                return NotFound("Password reset code does not exist!");
             }
-            return NotFound("Password reset code does not exist!");
+            return Ok("Password reset code exists!");
         }
 
         [HttpGet]
@@ -170,16 +192,13 @@ namespace CertificatesWebApp.Users.Controllers
         public async Task<ActionResult<string>> whoAmI()
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
-            if (result.Succeeded)
-            {
-                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
-                String role = identity.FindFirst(ClaimTypes.Role).Value;
-                return Ok(JsonConvert.SerializeObject(new { role }, Formatting.Indented));
-            }
-            else
+            if (!result.Succeeded)
             {
                 return BadRequest("Cookie error");
             }
+            ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+            String role = identity.FindFirst(ClaimTypes.Role).Value;
+            return Ok(JsonConvert.SerializeObject(new { role }, Formatting.Indented));
         }
     }
 }
