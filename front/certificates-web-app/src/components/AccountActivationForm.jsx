@@ -3,6 +3,7 @@ import {Navigate, useLocation, useNavigate} from "react-router-dom";
 import axios from "axios";
 import {Box, Container, CssBaseline} from "@mui/material";
 import Button from "@mui/material/Button";
+import {environment} from "../security/Environment.jsx";
 
 export default function AccountActivationForm() {
     const [activated, setActivated] = useState(null);
@@ -15,7 +16,7 @@ export default function AccountActivationForm() {
     };
 
     function activateAccount(code) {
-        axios.post(`https://localhost:7018/api/User/activateAccount/` + code)
+        axios.post(environment + `/api/User/activateAccount/` + code)
             .then(res => {
                 if (res.status === 200){
                     setActivated(true)

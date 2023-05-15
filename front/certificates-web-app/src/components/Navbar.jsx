@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {environment} from "../security/Environment.jsx";
 export default function Navbar() {
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -57,7 +58,7 @@ export default function Navbar() {
         handleCloseNavMenu(event)
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/logout`)
+        axios.post(environment + `/api/User/logout`)
             .then(res => {
                 if (res.status === 200){
                     navigate(0);

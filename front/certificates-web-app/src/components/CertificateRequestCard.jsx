@@ -4,6 +4,7 @@ import {Box, Card, CardContent, Grid, Modal, TextField, Typography} from "@mui/m
 import Button from "@mui/material/Button";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {environment} from "../security/Environment.jsx";
 
 export default function CertificateRequestCard(props) {
     const { id, type, state, hashAlgorithm, endDate, flags, parentSerialNumber } = props.data;
@@ -31,7 +32,7 @@ export default function CertificateRequestCard(props) {
 
     function declineRequest(event) {
         event.preventDefault();
-        axios.post("https://localhost:7018/api/Certificate/decline/" + id, {
+        axios.post(environment + "/api/Certificate/decline/" + id, {
             message: reason
         }).then(res => {
             if (res.status === 200){
@@ -45,7 +46,7 @@ export default function CertificateRequestCard(props) {
 
     function acceptRequest(event) {
         event.preventDefault();
-        axios.post("https://localhost:7018/api/Certificate/accept/" + id)
+        axios.post(environment + "/api/Certificate/accept/" + id)
             .then(res => {
             if (res.status === 200){
                 // navigate("/certificates");

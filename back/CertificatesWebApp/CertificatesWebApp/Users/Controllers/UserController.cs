@@ -63,6 +63,32 @@ namespace CertificatesWebApp.Users.Controllers
 
         [HttpPost]
         [Authorize]
+        public async Task<ActionResult<String>> sendTwoFactor(VerificationType verificationType)
+        {
+            AuthenticateResult result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+            {
+                ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
+                Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+                User user = _userService.Get(Guid.Parse(userClaim.Value));
+
+                if (verificationType == VerificationType.SMS)
+                {
+                    await _credentialsService.SendTwoFactorSMS(user.Telephone);
+                }
+                else {
+                    await _credentialsService.SendTwoFactorMail(user.Email);
+                }
+                return Ok("Two-factor code sent successfully!");
+            }
+            else
+            {
+                return BadRequest("Cookie error");
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
         [Route("{email}")]
         public async Task<ActionResult<String>> sendTwoFactorMail(String email)
         {
@@ -82,7 +108,7 @@ namespace CertificatesWebApp.Users.Controllers
         [HttpPost]
         [Authorize]
         [Route("{code}")]
-        public async Task<ActionResult<String>> twoFactorVerify(int code)
+        public async Task<ActionResult<String>> verifyTwoFactor(int code)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
             if (result.Succeeded)

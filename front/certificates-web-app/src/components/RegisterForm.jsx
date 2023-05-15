@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import {LockOutlined} from "@mui/icons-material";
 import Button from "@mui/material/Button";
+import {environment} from "../security/Environment.jsx";
 
 export default function RegisterForm() {
     const [email, setEmail] = useState("")
@@ -44,7 +45,7 @@ export default function RegisterForm() {
     function handleSubmit(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/register`, {
+        axios.post(environment + `/api/User/register`, {
             name: name,
             surname: surname,
             email: email,

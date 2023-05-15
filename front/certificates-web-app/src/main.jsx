@@ -9,11 +9,11 @@ import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 import Login from "./pages/Login.jsx";
 import axios from "axios";
 import {AuthProvider} from "./security/AuthContext.jsx";
-import {ProtectedRoute} from "./security/ProtectedRoute.jsx";
+import {AuthenticatedRoute} from "./security/AuthenticatedRoute.jsx";
 import Home from "./pages/Home.jsx";
 import Register from "./pages/Register.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import {UnregisteredRoute} from "./security/UnregisteredRoute.jsx";
+import {UnauthenticatedRoute} from "./security/UnauthenticatedRoute.jsx";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import CheckValidity from "./pages/CheckValidity.jsx";
@@ -22,6 +22,7 @@ import AccountActivation from "./pages/AccountActivation.jsx";
 import AllCertificates from "./pages/AllCertificates.jsx";
 import PasswordReset from "./pages/PasswordReset.jsx";
 import Navbar from "./components/Navbar.jsx";
+import TwoFactorVerification from "./pages/TwoFactorVerification.jsx";
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -41,16 +42,17 @@ const theme = createTheme({
 });
 
 const router = createBrowserRouter([
-    {path:"/home", element: <ProtectedRoute><Navbar/></ProtectedRoute>},
-    {path:"/login", element: <UnregisteredRoute><Login/></UnregisteredRoute>},
-    {path:"/register", element: <UnregisteredRoute><Register/></UnregisteredRoute>},
-    {path:"/activateAccount", element: <UnregisteredRoute><AccountActivation/></UnregisteredRoute>},
-    {path:"/passwordReset", element: <UnregisteredRoute><PasswordReset/></UnregisteredRoute>},
-    {path:"/forgotPassword", element: <UnregisteredRoute><ForgotPassword/></UnregisteredRoute>},
-    {path:"/generate", element: <ProtectedRoute><Navbar/><GenerateCertificateRequest/></ProtectedRoute>},
-    {path:"/requests", element: <ProtectedRoute><Navbar/><AllCertificateRequests/></ProtectedRoute>},
-    {path:"/checkValidity", element: <ProtectedRoute><Navbar/><CheckValidity/></ProtectedRoute>},
-    {path:"/certificates", element: <ProtectedRoute><Navbar/><AllCertificates/></ProtectedRoute>},
+    {path:"/login", element: <UnauthenticatedRoute><Login/></UnauthenticatedRoute>},
+    {path:"/register", element: <UnauthenticatedRoute><Register/></UnauthenticatedRoute>},
+    {path:"/activateAccount", element: <UnauthenticatedRoute><AccountActivation/></UnauthenticatedRoute>},
+    {path:"/passwordReset", element: <UnauthenticatedRoute><PasswordReset/></UnauthenticatedRoute>},
+    {path:"/forgotPassword", element: <UnauthenticatedRoute><ForgotPassword/></UnauthenticatedRoute>},
+    {path:"/twoFactor", element: <TwoFactorVerification/>},
+    {path:"/home", element: <AuthenticatedRoute><Navbar/></AuthenticatedRoute>},
+    {path:"/generate", element: <AuthenticatedRoute><Navbar/><GenerateCertificateRequest/></AuthenticatedRoute>},
+    {path:"/requests", element: <AuthenticatedRoute><Navbar/><AllCertificateRequests/></AuthenticatedRoute>},
+    {path:"/checkValidity", element: <AuthenticatedRoute><Navbar/><CheckValidity/></AuthenticatedRoute>},
+    {path:"/certificates", element: <AuthenticatedRoute><Navbar/><AllCertificates/></AuthenticatedRoute>},
     {path:"*", element: <Navigate to="/home" replace />},
 ])
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -59,7 +61,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <LocalizationProvider dateAdapter={AdapterDayjs}>
               <AuthProvider>
                   <QueryClientProvider client={queryClient}>
-
                       <RouterProvider router={router}>
                       </RouterProvider>
                     <ReactQueryDevtools/>

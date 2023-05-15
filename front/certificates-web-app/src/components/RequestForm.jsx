@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import {DatePicker} from "@mui/x-date-pickers";
 import axios from "axios";
 import {AuthContext} from "../security/AuthContext.jsx";
+import {environment} from "../security/Environment.jsx";
 
 
 export default function RequestForm() {
@@ -51,7 +52,7 @@ export default function RequestForm() {
     function sendRequest(event)
     {
         event.preventDefault();
-        axios.post("https://localhost:7018/api/CertificateRequest/", {
+        axios.post(environment + "/api/CertificateRequest/", {
             parentSerialNumber: serialNumber,
             o: o,
             ou: ou,

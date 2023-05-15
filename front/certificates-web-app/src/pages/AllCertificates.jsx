@@ -3,6 +3,7 @@ import {Box, FormControl, Grid, InputLabel, MenuItem, Select, Tab, TablePaginati
 import {TabContext} from "@mui/lab";
 import React, {useContext, useEffect, useState} from "react";
 import CertificateCard from "../components/CertificateCard.jsx";
+import {environment} from "../security/Environment.jsx";
 
 export default function AllCertificates(){
     const [value, setValue] = useState(0);
@@ -22,7 +23,7 @@ export default function AllCertificates(){
     useEffect( ()=>{
         switch (value) {
             case 0:
-                axios.get(`https://localhost:7018/api/Certificate?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                axios.get(environment + `/api/Certificate?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificates(res.data.certificates)
                 }).catch(err => {
@@ -30,7 +31,7 @@ export default function AllCertificates(){
                 });
                 break;
             case 1:
-                axios.get(`https://localhost:7018/api/Certificate/my?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                axios.get(environment + `/api/Certificate/my?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificates(res.data.certificates)
                 }).catch(err => {
