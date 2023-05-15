@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import {LockOutlined} from "@mui/icons-material";
+import {environment} from "../security/Environment.jsx";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
@@ -21,7 +22,7 @@ export default function LoginForm() {
     function submitHandler(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/login`, {
+        axios.post(environment + `/api/User/login`, {
             email: email,
             password: password
         }).then(res => {

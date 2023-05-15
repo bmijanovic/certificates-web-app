@@ -3,6 +3,7 @@ import {TextField, Typography} from "@mui/material";
 import Button from "@mui/material/Button";
 import axios from "axios";
 import ValidityReview from "../components/ValidityReview.jsx";
+import {environment} from "../security/Environment.jsx";
 
 export default function CheckValidity(){
     const [serialNumber, setSerialNumber] = useState("");
@@ -25,7 +26,7 @@ export default function CheckValidity(){
     }
 
     function checkValidityBySerialNumbber(serialNumber) {
-        axios.get("https://localhost:7018/api/Certificate/checkValidity/" + serialNumber)
+        axios.get(environment + "/api/Certificate/checkValidity/" + serialNumber)
             .then((res) => {
                 setShowDetails(true);
                 console.log(res.data)
@@ -38,7 +39,7 @@ export default function CheckValidity(){
     function checkValidityByUploadedFile(file) {
         const formData = new FormData();
         formData.append('certificate', file);
-        axios.post("https://localhost:7018/api/Certificate/checkValidity", formData, {
+        axios.post(environment + "/api/Certificate/checkValidity", formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

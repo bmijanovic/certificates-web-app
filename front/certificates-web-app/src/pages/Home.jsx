@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {environment} from "../security/Environment.jsx";
 
 export default function Home() {
     const navigate = useNavigate()
@@ -8,7 +9,7 @@ export default function Home() {
     function logout(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/logout`)
+        axios.post(environment + `/api/User/logout`)
             .then(res => {
             if (res.status === 200){
                 navigate(0)

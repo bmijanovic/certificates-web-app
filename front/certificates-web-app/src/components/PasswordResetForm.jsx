@@ -13,6 +13,7 @@ import {
     Typography
 } from "@mui/material";
 import Button from "@mui/material/Button";
+import {environment} from "../security/Environment.jsx";
 
 export default function PasswordResetForm() {
     const [password, setPassword] = useState("")
@@ -21,12 +22,11 @@ export default function PasswordResetForm() {
     const [codeExists, setCodeExists] = useState(null)
     const [error, setError] = useState("")
 
+    const [dialogOpen, setDialogOpen] = React.useState(false);
     const navigate = useNavigate()
 
-    const [dialogOpen, setDialogOpen] = React.useState(false);
-
     function checkIfCodeExists(code) {
-        axios.get(`https://localhost:7018/api/User/doesPasswordResetCodeExists/` + code)
+        axios.get(environment + `/api/User/doesPasswordResetCodeExists/` + code)
             .then(res => {
                 if (res.status === 200){
                     setCodeExists(true)
@@ -53,7 +53,7 @@ export default function PasswordResetForm() {
     function handleSubmit(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/resetPassword/` + code, {
+        axios.post(environment + `/api/User/resetPassword/` + code, {
             password: password,
             passwordConfirmation: passwordConfirmation
         })
@@ -90,7 +90,7 @@ export default function PasswordResetForm() {
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label="New password"
                             type="password"
                             id="password"
                             autoComplete="current-password"
@@ -102,7 +102,7 @@ export default function PasswordResetForm() {
                         required
                         fullWidth
                         name="passwordConfirmation"
-                        label="Password confrimation"
+                        label="Confirm new password"
                         type="password"
                         id="passwordConfirmation"
                         autoComplete="current-password"
