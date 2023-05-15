@@ -1,2 +1,0 @@
-site-key:6LdgNhEmAAAAABnEKqPT6pKola4nRGSQ-0i713xN
-secret-key:6LdgNhEmAAAAAIOY8Coq0AzbQNVGTVhYRWNdrfD4
