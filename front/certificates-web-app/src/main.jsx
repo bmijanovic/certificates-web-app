@@ -24,6 +24,8 @@ import PasswordReset from "./pages/PasswordReset.jsx";
 import Navbar from "./components/Navbar.jsx";
 import TwoFactorVerification from "./pages/TwoFactorVerification.jsx";
 import PasswordExpired from "./pages/PasswordExpired.jsx";
+import {GoogleReCaptcha, GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
+
 axios.defaults.withCredentials = true
 
 const queryClient = new QueryClient({defaultOptions: { queries: {
@@ -42,6 +44,9 @@ const theme = createTheme({
     },
 });
 
+const siteKey = "6LfgOwcmAAAAABwjcpMMve7S2_3OYQi6ai-X6J3p";
+
+
 const router = createBrowserRouter([
     {path:"/login", element: <UnauthenticatedRoute><Login/></UnauthenticatedRoute>},
     {path:"/register", element: <UnauthenticatedRoute><Register/></UnauthenticatedRoute>},
@@ -59,16 +64,19 @@ const router = createBrowserRouter([
 ])
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-      <ThemeProvider theme={theme}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <AuthProvider>
-                  <QueryClientProvider client={queryClient}>
-                      <RouterProvider router={router}>
-                      </RouterProvider>
-                    <ReactQueryDevtools/>
-                  </QueryClientProvider>
-              </AuthProvider>
-          </LocalizationProvider>
-      </ThemeProvider>
+      <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+          <ThemeProvider theme={theme}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <AuthProvider>
+                      <QueryClientProvider client={queryClient}>
+
+                          <RouterProvider router={router}>
+                          </RouterProvider>
+                          <ReactQueryDevtools/>
+                      </QueryClientProvider>
+                  </AuthProvider>
+              </LocalizationProvider>
+          </ThemeProvider>
+      </GoogleReCaptchaProvider>
   </React.StrictMode>,
 )
