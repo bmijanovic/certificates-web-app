@@ -19,7 +19,7 @@ namespace CertificatesWebApp.Users.Dtos
 
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required.")]
-        [RegularExpression("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric and one symbol).")]
+        [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\w\\s]).{12,30}$", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric, one symbol and length from 12 to 30 characters).")]
         public String Password { get; set; }
 
         [Required(ErrorMessage = "Telephone is required.")]
@@ -29,18 +29,16 @@ namespace CertificatesWebApp.Users.Dtos
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [Required(ErrorMessage = "Verification type is required.")]
-        public VerificationType VerificationType { get; set; }
-
-        public UserDTO(User user)
-        {
-            Name = user.Name;
-            Surname = user.Surname;
-            Email = user.Email;
-            Telephone = user.Telephone;
-        }
+        public VerificationType? VerificationType { get; set; }
 
         public UserDTO()
         {
+            Name = "John";
+            Surname = "Doe";
+            Email = "tes@test.com";
+            Password = "SecurePassword1234.";
+            Telephone = "+38112341234";
+            VerificationType = Data.Models.VerificationType.EMAIL;
         }
     }
 }

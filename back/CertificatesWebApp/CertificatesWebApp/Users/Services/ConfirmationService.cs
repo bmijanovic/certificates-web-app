@@ -1,8 +1,8 @@
-﻿using CertificatesWebApp.Infrastructure;
+﻿using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
-using Microsoft.Data.SqlClient;
 using System.Security.Cryptography;
 
 namespace CertificatesWebApp.Users.Services
@@ -44,11 +44,11 @@ namespace CertificatesWebApp.Users.Services
                 {
                     _confirmationRepository.Delete(confirmation.Id);
                     _userRepository.Delete(confirmation.User.Id);
-                    throw new KeyNotFoundException("Activation code expired, please sign up again!");
+                    throw new ResourceNotFoundException("Activation code expired, please sign up again!");
                 }
             }
             else {
-                throw new KeyNotFoundException("Activation code invalid");
+                throw new ResourceNotFoundException("Activation code invalid");
             }
         }
 
@@ -57,7 +57,7 @@ namespace CertificatesWebApp.Users.Services
         {
             if (passwordResetDTO.Password != passwordResetDTO.PasswordConfirmation)
             {
-                throw new ArgumentException("Passwords are not same!");
+                throw new InvalidInputException("Passwords are not same!");
             }
 
             Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, ConfirmationType.RESET_PASSWORD);
@@ -74,12 +74,12 @@ namespace CertificatesWebApp.Users.Services
                 else
                 {
                     _confirmationRepository.Delete(confirmation.Id);
-                    throw new KeyNotFoundException("Password reset code expired!");
+                    throw new ResourceNotFoundException("Password reset code expired!");
                 }
             }
             else
             {
-                throw new KeyNotFoundException("Password reset code invalid");
+                throw new ResourceNotFoundException("Password reset code invalid");
             }
         }
 
@@ -104,7 +104,7 @@ namespace CertificatesWebApp.Users.Services
                 return _confirmationRepository.Create(confirmation);
             }
             else {
-                throw new ArgumentException("User not activated!");
+                throw new InvalidInputException("User not activated!");
             }
         }
 

@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using CertificateRequest = Data.Models.CertificateRequest;
 using System.Web;
+using CertificatesWebApp.Exceptions;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -57,7 +58,7 @@ namespace CertificatesWebApp.Certificates.Controllers
             {
                 return File(System.IO.File.OpenRead(path), "application/octet-stream", Path.GetFileName(path));
             }
-            return NotFound();
+            throw new ResourceNotFoundException("Certificate not found!");
         }
 
 
@@ -196,7 +197,7 @@ namespace CertificatesWebApp.Certificates.Controllers
             {
                 return Forbid("Authentication error!");
             }
-            }
+        }
 
         [HttpGet]
         [Authorize]

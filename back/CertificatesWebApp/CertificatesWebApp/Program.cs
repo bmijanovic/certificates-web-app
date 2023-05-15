@@ -1,5 +1,5 @@
 using CertificatesWebApp.Certificates.Repositories;
-using CertificatesWebApp.Infrastructure;
+using CertificatesWebApp.Exceptions;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
@@ -82,6 +82,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowReactApp");
 app.UseMiddleware<ExceptionMiddleware>(true);
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

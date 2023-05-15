@@ -8,6 +8,6 @@ namespace Data.Models
 {
     public enum ConfirmationType
     {
-        ACTIVATION, RESET_PASSWORD, ROTATE_PASSWORD
+        ACTIVATION, RESET_PASSWORD, TWO_FACTOR
     }
 }

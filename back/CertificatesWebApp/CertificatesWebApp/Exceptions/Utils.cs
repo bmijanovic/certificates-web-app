@@ -1,16 +1,16 @@
 ﻿using System.Net;
 using System.Net.Mime;
 
-namespace CertificatesWebApp.Infrastructure
+namespace CertificatesWebApp.Exceptions
 {
     internal static class Utils
     {
         internal static HttpStatusCode ExceptionToStatusCode(this Exception exception)
             => exception switch
             {
-                ArgumentException => HttpStatusCode.BadRequest,
-                KeyNotFoundException => HttpStatusCode.NotFound,
-                //_ => HttpStatusCode.InternalServerError
+                InvalidInputException => HttpStatusCode.BadRequest,
+                ResourceNotFoundException => HttpStatusCode.NotFound,
+                _ => HttpStatusCode.InternalServerError
             };
 
         internal static async Task WriteJsonToHttpResponseAsync<TResponse>(HttpResponse httpResponse, HttpStatusCode statusCode, TResponse response)

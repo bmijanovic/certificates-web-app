@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace CertificatesWebApp.Users.Controllers
@@ -31,7 +30,7 @@ namespace CertificatesWebApp.Users.Controllers
         public async Task<ActionResult<UserDTO>> register(UserDTO userDTO)
         {
             User user = await _userService.CreateUser(userDTO);
-            return Ok(new UserDTO(user));
+            return Ok(new UserSimpleDTO(user));
         }
 
         [HttpPost]
