@@ -14,5 +14,6 @@ namespace CertificatesWebApp.Certificates.DTOs
         public CertificateType Type { get; set; }
         public String Flags { get; set; }
         public String HashAlgorithm { get; set; }
+        public String Token { get; set; }         
     }
 }

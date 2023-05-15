@@ -35,6 +35,7 @@ builder.Services.AddTransient<ICredentialsService, CredentialsService>();
 builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddTransient<ISMSService, SMSService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IGoogleCaptchaService, GoogleCaptchaService>();
 
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
