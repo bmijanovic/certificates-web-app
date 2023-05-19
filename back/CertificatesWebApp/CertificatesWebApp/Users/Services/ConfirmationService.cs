@@ -11,7 +11,6 @@ namespace CertificatesWebApp.Users.Services
     {
         Task ActivateAccount(int code);
         Task ResetPassword(int code, PasswordResetDTO passwordResetDTO);
-        Task ResetPassword(Guid userId, PasswordResetDTO passwordResetDTO);
         Task VerifyTwoFactor(Guid userId, int code);
         Task<Confirmation> CreateActivationConfirmation(Guid userId);
         Task<Confirmation> CreateResetPasswordConfirmation(Guid userId);
@@ -23,12 +22,15 @@ namespace CertificatesWebApp.Users.Services
         private const int VerificationCodeLength = 8;
         private readonly IConfirmationRepository _confirmationRepository;
         private readonly ICredentialsRepository _credentialsRepository;
+        private readonly IPasswordRecordRepository _passwordRecordRepository;
         private readonly IUserRepository _userRepository;
 
-        public ConfirmationService(IConfirmationRepository confirmationRepository, IUserRepository userRepository, ICredentialsRepository credentialsRepository)
+        public ConfirmationService(IConfirmationRepository confirmationRepository, IUserRepository userRepository,
+            IPasswordRecordRepository passwordRecordRepository,  ICredentialsRepository credentialsRepository)
         {
             _confirmationRepository = confirmationRepository;
             _credentialsRepository = credentialsRepository;
+            _passwordRecordRepository = passwordRecordRepository;
             _userRepository = userRepository;
         }
 
@@ -68,31 +70,30 @@ namespace CertificatesWebApp.Users.Services
                 throw new ResourceNotFoundException("Password reset code invalid!");
             }
 
-            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
-            {
-                Credentials credentials = await _credentialsRepository.FindByEmail(confirmation.User.Email);
-                credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
-                credentials.ExpiratonDate = DateTime.Now.AddDays(30);
-                _credentialsRepository.Update(credentials);
-                _confirmationRepository.Delete(confirmation.Id);
-            }
-            else
+            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
             {
                 _confirmationRepository.Delete(confirmation.Id);
                 throw new ResourceNotFoundException("Password reset code expired!");
             }
-        }
 
-        public async Task ResetPassword(Guid userId, PasswordResetDTO passwordResetDTO) {
-            if (passwordResetDTO.Password != passwordResetDTO.PasswordConfirmation)
+            Credentials credentials = await _credentialsRepository.FindByEmail(confirmation.User.Email);
+
+            if (await _passwordRecordRepository.IsPasswordAlreadyUsed(credentials.User.Id, passwordResetDTO.Password))
             {
-                throw new InvalidInputException("Passwords are not same!");
+                throw new InvalidInputException("You can't use old password!");
             }
 
-            Credentials credentials = await _credentialsRepository.FindByUserId(userId);
+            await _passwordRecordRepository.DeleteOldRecordsForUser(credentials.User.Id, 2);
+            PasswordRecord passwordRecord = new PasswordRecord();
+            passwordRecord.User = credentials.User;
+            passwordRecord.DateChanged = DateTime.UtcNow;
+            passwordRecord.Password = credentials.Password;
+            _passwordRecordRepository.Create(passwordRecord);
+
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
-            credentials.ExpiratonDate = DateTime.Now.AddDays(30);
+            credentials.ExpiratonDate = DateTime.Now.AddMonths(3);
             _credentialsRepository.Update(credentials);
+            _confirmationRepository.Delete(confirmation.Id);
         }
 
         public async Task VerifyTwoFactor(Guid userId, int code) {
@@ -129,7 +130,7 @@ namespace CertificatesWebApp.Users.Services
             Confirmation confirmation = new Confirmation();
             confirmation.ConfirmationType = ConfirmationType.ACTIVATION;
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
-            confirmation.ExpirationDate = DateTime.Now.AddDays(1);
+            confirmation.ExpirationDate = DateTime.Now.AddHours(24);
             confirmation.User = user;
             return _confirmationRepository.Create(confirmation);
         }
@@ -151,7 +152,7 @@ namespace CertificatesWebApp.Users.Services
             Confirmation confirmation = new Confirmation();
             confirmation.ConfirmationType = ConfirmationType.RESET_PASSWORD;
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
-            confirmation.ExpirationDate = DateTime.Now.AddDays(1);
+            confirmation.ExpirationDate = DateTime.Now.AddHours(1);
             confirmation.User = user;
             return _confirmationRepository.Create(confirmation);
         }
@@ -173,7 +174,7 @@ namespace CertificatesWebApp.Users.Services
             Confirmation confirmation = new Confirmation();
             confirmation.ConfirmationType = ConfirmationType.TWO_FACTOR;
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
-            confirmation.ExpirationDate = DateTime.Now.AddMinutes(5);
+            confirmation.ExpirationDate = DateTime.Now.AddMinutes(10);
             confirmation.User = user;
             return _confirmationRepository.Create(confirmation);
         }

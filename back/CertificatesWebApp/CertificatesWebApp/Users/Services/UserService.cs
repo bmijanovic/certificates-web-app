@@ -88,7 +88,7 @@ namespace CertificatesWebApp.Users.Services
             Credentials credentials = new Credentials();
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
             credentials.User = user;
-            credentials.ExpiratonDate = DateTime.Now.AddDays(30);
+            credentials.ExpiratonDate = DateTime.Now.AddMonths(3);
             _credentialsRepository.Create(credentials);
 
             try
