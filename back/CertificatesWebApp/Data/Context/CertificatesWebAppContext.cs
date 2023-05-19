@@ -20,6 +20,7 @@ namespace Data.Context
         public DbSet<CertificateRequest> CertificatesRequests { get; set; }
         public DbSet<Confirmation> Confirmations { get; set; }
         public DbSet<Credentials> Credentials { get; set; }
+        public DbSet<PasswordRecord> Passworrecords { get; set; }
         public DbSet<User> Users { get; set; }
 
 

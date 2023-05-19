@@ -163,11 +163,11 @@ namespace CertificatesWebApp.Users.Controllers
             Claim twoFactorClaim = identity.FindFirst("TwoFactor");
 
             if (twoFactorClaim.Value == "Unconfirmed") {
-                return BadRequest("You are not two factor verified");
+                return Forbid("You are not two factor verified");
             }
 
             Claim userClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
-            await _confirmationService.ResetPassword(Guid.Parse(userClaim.Value), passwordResetDTO);
+            await _credentialsService.ResetPassword(Guid.Parse(userClaim.Value), passwordResetDTO);
             identity.TryRemoveClaim(identity.FindFirst("PasswordExpired"));
             identity.AddClaim(new Claim("PasswordExpired", "False"));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));

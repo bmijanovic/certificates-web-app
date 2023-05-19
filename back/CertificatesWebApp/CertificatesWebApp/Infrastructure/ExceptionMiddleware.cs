@@ -2,7 +2,7 @@
 using System.Net;
 
 
-namespace CertificatesWebApp.Exceptions
+namespace CertificatesWebApp.Infrastructure
 {
     public class ExceptionMiddleware
     {

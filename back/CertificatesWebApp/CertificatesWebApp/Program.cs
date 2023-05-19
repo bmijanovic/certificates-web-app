@@ -1,5 +1,5 @@
 using CertificatesWebApp.Certificates.Repositories;
-using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
@@ -25,6 +25,7 @@ builder.Services.AddTransient<ICertificateRepository, CertificateRepository>();
 builder.Services.AddTransient<ICertificateRequestRepository, CertificateRequestRepository>();
 builder.Services.AddTransient<IConfirmationRepository, ConfirmationRepository>();
 builder.Services.AddTransient<ICredentialsRepository, CredentialsRepository>();
+builder.Services.AddTransient<IPasswordRecordRepository, PasswordRecordRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 
