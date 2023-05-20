@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using CertificatesWebApp.Security;
 
 namespace CertificatesWebApp.Users.Controllers
 {
@@ -17,17 +18,21 @@ namespace CertificatesWebApp.Users.Controllers
         private readonly IUserService _userService;
         private readonly ICredentialsService _credentialsService;
         private readonly IConfirmationService _confirmationService;
+        private readonly IGoogleCaptchaService _googleCaptchaService;
 
-        public UserController(IUserService userService, ICredentialsService credentialsService, IConfirmationService confirmationService)
+        public UserController(IUserService userService, ICredentialsService credentialsService, IConfirmationService confirmationService, IGoogleCaptchaService googleCaptchaService)
         {
             _credentialsService = credentialsService;
             _userService = userService;
             _confirmationService = confirmationService;
+            _googleCaptchaService = googleCaptchaService;
         }
 
         [HttpPost]
         public async Task<ActionResult<UserDTO>> register(UserDTO userDTO)
         {
+            bool captchaResult = await _googleCaptchaService.VerifyToken(userDTO.Token);
+            if (!captchaResult) return BadRequest("ReCaptcha error!");
             User user = await _userService.CreateUser(userDTO);
             return Ok(new UserSimpleDTO(user));
         }
@@ -35,6 +40,8 @@ namespace CertificatesWebApp.Users.Controllers
         [HttpPost]
         public async Task<ActionResult<String>> login(CredentialsDTO credentialsDTO)
         {
+            bool captchaResult = await _googleCaptchaService.VerifyToken(credentialsDTO.Token);
+            if (!captchaResult) return BadRequest("ReCaptcha error!");
             User user = await _credentialsService.Authenticate(credentialsDTO.Email, credentialsDTO.Password);
             ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
@@ -145,6 +152,8 @@ namespace CertificatesWebApp.Users.Controllers
         [Route("{code}")]
         public async Task<ActionResult<String>> resetPassword(int code, PasswordResetDTO passwordResetDTO)
         {
+            bool captchaResult = await _googleCaptchaService.VerifyToken(passwordResetDTO.Token);
+            if (!captchaResult) return BadRequest("ReCaptcha error!");
             await _confirmationService.ResetPassword(code, passwordResetDTO);
             return Ok("Password reset successfully!");
         }
@@ -158,6 +167,9 @@ namespace CertificatesWebApp.Users.Controllers
             {
                 return BadRequest("Cookie error");
             }
+
+            bool captchaResult = await _googleCaptchaService.VerifyToken(passwordResetDTO.Token);
+            if (!captchaResult) return BadRequest("ReCaptcha error!");
 
             ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
             Claim twoFactorClaim = identity.FindFirst("TwoFactor");

@@ -14,6 +14,7 @@ import {
     Typography
 } from "@mui/material";
 import Button from "@mui/material/Button";
+import {GoogleReCaptcha} from "react-google-recaptcha-v3";
 
 export default function PasswordExpiredForm() {
     const [password, setPassword] = useState("")
@@ -22,13 +23,20 @@ export default function PasswordExpiredForm() {
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const navigate = useNavigate()
+    const [token, setToken] = useState("")
+    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
+    const handleVerify = (t) => {
+        setToken(t);
+    }
+    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
 
     function handleSubmit(event) {
         event.preventDefault()
 
         axios.post(environment + `/api/User/resetPassword/`, {
             password: password,
-            passwordConfirmation: passwordConfirmation
+            passwordConfirmation: passwordConfirmation,
+            token: token,
         })
             .then(res => {
                 if (res.status === 200) {
@@ -102,6 +110,7 @@ export default function PasswordExpiredForm() {
                     </Button>
                 </Box>
             </Box>
+            {recaptcha}
         </Container>
         <Dialog
             open={dialogOpen}

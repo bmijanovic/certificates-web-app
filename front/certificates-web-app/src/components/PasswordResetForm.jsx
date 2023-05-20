@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import {environment} from "../security/Environment.jsx";
+import {GoogleReCaptcha} from "react-google-recaptcha-v3";
 
 export default function PasswordResetForm() {
     const [password, setPassword] = useState("")
@@ -23,7 +24,18 @@ export default function PasswordResetForm() {
     const [error, setError] = useState("")
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [token, setToken] = useState("")
+    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
     const navigate = useNavigate()
+
+
+
+    const handleVerify = (t) => {
+        setToken(t);
+    }
+
+    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
+
 
     function checkIfCodeExists(code) {
         axios.get(environment + `/api/User/doesPasswordResetCodeExists/` + code)
@@ -55,7 +67,8 @@ export default function PasswordResetForm() {
 
         axios.post(environment + `/api/User/resetPassword/` + code, {
             password: password,
-            passwordConfirmation: passwordConfirmation
+            passwordConfirmation: passwordConfirmation,
+            token: token,
         })
             .then(res => {
                 if (res.status === 200){
@@ -122,6 +135,7 @@ export default function PasswordResetForm() {
                         </Button>
                     </Box>
                 </Box>
+                {recaptcha}
             </Container>
             <Dialog
                 open={dialogOpen}

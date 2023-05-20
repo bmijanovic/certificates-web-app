@@ -12,19 +12,25 @@ import {
 import Button from "@mui/material/Button";
 import {LockOutlined} from "@mui/icons-material";
 import {environment} from "../security/Environment.jsx";
+import {GoogleReCaptcha} from "react-google-recaptcha-v3";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
+    const [token, setToken] = useState("")
+    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
 
     const navigate = useNavigate()
+
+
     function submitHandler(event) {
         event.preventDefault()
-
+        setRefreshReCaptcha(r => !r);
         axios.post(environment + `/api/User/login`, {
             email: email,
-            password: password
+            password: password,
+            token: token,
         }).then(res => {
             if (res.status === 200){
                 navigate(0);
@@ -41,6 +47,12 @@ export default function LoginForm() {
             }
         });
     }
+
+    const handleVerify = (t) => {
+        setToken(t);
+    }
+    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
+
 
     return <>
         <Container container="main" maxWidth="xs">
@@ -110,6 +122,7 @@ export default function LoginForm() {
                         </Stack>
                     </Stack>
                 </Box>
+                {recaptcha}
             </Box>
         </Container>
     </>
