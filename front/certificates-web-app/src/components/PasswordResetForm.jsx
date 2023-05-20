@@ -24,17 +24,7 @@ export default function PasswordResetForm() {
     const [error, setError] = useState("")
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
-    const [token, setToken] = useState("")
-    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
     const navigate = useNavigate()
-
-
-
-    const handleVerify = (t) => {
-        setToken(t);
-    }
-
-    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
 
 
     function checkIfCodeExists(code) {
@@ -68,7 +58,6 @@ export default function PasswordResetForm() {
         axios.post(environment + `/api/User/resetPassword/` + code, {
             password: password,
             passwordConfirmation: passwordConfirmation,
-            token: token,
         })
             .then(res => {
                 if (res.status === 200){
@@ -135,7 +124,6 @@ export default function PasswordResetForm() {
                         </Button>
                     </Box>
                 </Box>
-                {recaptcha}
             </Container>
             <Dialog
                 open={dialogOpen}

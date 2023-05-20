@@ -23,12 +23,6 @@ export default function PasswordExpiredForm() {
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const navigate = useNavigate()
-    const [token, setToken] = useState("")
-    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
-    const handleVerify = (t) => {
-        setToken(t);
-    }
-    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
 
     function handleSubmit(event) {
         event.preventDefault()
@@ -36,7 +30,6 @@ export default function PasswordExpiredForm() {
         axios.post(environment + `/api/User/resetPassword/`, {
             password: password,
             passwordConfirmation: passwordConfirmation,
-            token: token,
         })
             .then(res => {
                 if (res.status === 200) {
@@ -110,7 +103,6 @@ export default function PasswordExpiredForm() {
                     </Button>
                 </Box>
             </Box>
-            {recaptcha}
         </Container>
         <Dialog
             open={dialogOpen}

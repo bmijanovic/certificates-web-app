@@ -152,8 +152,6 @@ namespace CertificatesWebApp.Users.Controllers
         [Route("{code}")]
         public async Task<ActionResult<String>> resetPassword(int code, PasswordResetDTO passwordResetDTO)
         {
-            bool captchaResult = await _googleCaptchaService.VerifyToken(passwordResetDTO.Token);
-            if (!captchaResult) return BadRequest("ReCaptcha error!");
             await _confirmationService.ResetPassword(code, passwordResetDTO);
             return Ok("Password reset successfully!");
         }
@@ -168,8 +166,6 @@ namespace CertificatesWebApp.Users.Controllers
                 return BadRequest("Cookie error");
             }
 
-            bool captchaResult = await _googleCaptchaService.VerifyToken(passwordResetDTO.Token);
-            if (!captchaResult) return BadRequest("ReCaptcha error!");
 
             ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
             Claim twoFactorClaim = identity.FindFirst("TwoFactor");
