@@ -32,20 +32,20 @@ export default function AllCertificateRequests() {
     const { isAuthenticated, role, isLoading } = useContext(AuthContext);
 
 
-    const certificateRequestsQuery = useQuery({
-        queryKey: ["certificateRequest"],
-        queryFn: () => axios.get(environment + "/api/CertificateRequest").then(res => res.data).catch(err => {console.log(err)})
-    })
-
-    const allCertificateRequestsQuery = useQuery({
-        queryKey: ["allCertificateRequest"],
-        queryFn: () => axios.get(environment + "/api/CertificateRequest/getAll").then(res => res.data).catch(err => {console.log(err)})
-    })
-
-    const approvalCertificateRequestsQuery = useQuery({
-        queryKey: ["approvalCertificateRequest"],
-        queryFn: () => axios.get(environment + "/api/CertificateRequest/forApproval").then(res => res.data).catch(err => {console.log(err)})
-    })
+    // const certificateRequestsQuery = useQuery({
+    //     queryKey: ["certificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest").then(res => res.data).catch(err => {console.log(err)})
+    // })
+    //
+    // const allCertificateRequestsQuery = useQuery({
+    //     queryKey: ["allCertificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest/getAll").then(res => res.data).catch(err => {console.log(err)})
+    // })
+    //
+    // const approvalCertificateRequestsQuery = useQuery({
+    //     queryKey: ["approvalCertificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest/forApproval").then(res => res.data).catch(err => {console.log(err)})
+    // })
 
     const handleChange = (event, newValue) => {
         setValue(newValue.props.value);
