@@ -66,7 +66,12 @@ namespace CertificatesWebApp.Users.Services
             }
 
             Credentials credentials = await _credentialsRepository.FindByUserId(userId);
-            
+
+            if (BCrypt.Net.BCrypt.Verify(passwordResetDTO.Password, credentials.Password))
+            {
+                throw new InvalidInputException("You can't use current password!");
+            }
+
             if (await _passwordRecordRepository.IsPasswordAlreadyUsed(credentials.User.Id, passwordResetDTO.Password))
             {
                 throw new InvalidInputException("You can't use old password!");
