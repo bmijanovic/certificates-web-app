@@ -31,6 +31,8 @@ namespace CertificatesWebApp.Users.Dtos
         [Required(ErrorMessage = "Verification type is required.")]
         public VerificationType? VerificationType { get; set; }
 
+        public String Token { get; set; }
+
         public UserDTO()
         {
             Name = "John";

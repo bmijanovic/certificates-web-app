@@ -45,7 +45,6 @@ export default function RequestForm(callback, deps) {
     function submitHandler(event) {
         event.preventDefault()
         setRefreshReCaptcha(r => !r);
-        console.log("token: ", token)
         sendRequest(event)
 
     }

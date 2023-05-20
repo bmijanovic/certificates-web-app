@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 
 namespace CertificatesWebApp.Users.Dtos
 {
@@ -13,5 +14,7 @@ namespace CertificatesWebApp.Users.Dtos
         [Required(ErrorMessage = "Password confirmation is required.")]
         [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\w\\s]).{12,30}$", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric and one symbol).")]
         public String PasswordConfirmation { get; set; }
+
+        public String Token { get; set; }
     }
 }
