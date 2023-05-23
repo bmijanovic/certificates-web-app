@@ -1,12 +1,16 @@
-﻿using CertificatesWebApp.Users.Dtos;
+﻿using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using System.Text;
 using CertificatesWebApp.Security;
 
 namespace CertificatesWebApp.Users.Controllers
@@ -207,6 +211,94 @@ namespace CertificatesWebApp.Users.Controllers
             ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
             String role = identity.FindFirst(ClaimTypes.Role).Value;
             return Ok(JsonConvert.SerializeObject(new { role }, Formatting.Indented));
+        }
+        [HttpGet("/api/User/signin-google")]
+        public IActionResult Login2()
+        {
+            var redirectUrl = Url.Action("GoogleCallback");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+        [HttpGet]
+        [Route("/api/User/auth/google/callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidInputException("Authentication failed.");
+            }
+
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = result.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            User user = await _userService.GetByEmail(email);
+            if (user == null)
+            {
+
+                UserDTO userDTO = new UserDTO(name.Substring(0,name.IndexOf(' ')), name.Substring(name.IndexOf(' ')),email,GenerateRandomPassword(),null,VerificationType.EMAIL);
+                User newUser = await _userService.CreateUser(userDTO);
+            }
+            else
+            {
+                ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+                identity.AddClaim(new Claim("TwoFactor", "Confirmed"));
+                identity.AddClaim(new Claim("PasswordExpired", "False"));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            }
+
+            return Redirect("http://localhost:5173/certificates");
+        }
+
+        private string GenerateRandomPassword()
+        {
+            PasswordOptions opts = new PasswordOptions()
+            {
+                RequiredLength = 12,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireNonAlphanumeric = true,
+                RequireUppercase = true
+            };
+
+            string[] randomChars = new[] {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
+            "abcdefghijkmnopqrstuvwxyz",    // lowercase
+            "0123456789",                   // digits
+            "!@$?_-"                        // non-alphanumeric
+        };
+
+            Random rand = new Random(Environment.TickCount);
+            List<char> chars = new List<char>();
+
+            if (opts.RequireUppercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[0][rand.Next(0, randomChars[0].Length)]);
+
+            if (opts.RequireLowercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[1][rand.Next(0, randomChars[1].Length)]);
+
+            if (opts.RequireDigit)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[2][rand.Next(0, randomChars[2].Length)]);
+
+            if (opts.RequireNonAlphanumeric)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[3][rand.Next(0, randomChars[3].Length)]);
+
+            for (int i = chars.Count; i < opts.RequiredLength
+                || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+            {
+                string rcs = randomChars[rand.Next(0, randomChars.Length)];
+                chars.Insert(rand.Next(0, chars.Count),
+                    rcs[rand.Next(0, rcs.Length)]);
+            }
+
+            return new string(chars.ToArray());
         }
     }
 }

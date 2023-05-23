@@ -3,7 +3,11 @@ using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
+using Microsoft.AspNetCore.Authentication;
+using System.Linq.Expressions;
+using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -11,6 +15,7 @@ namespace CertificatesWebApp.Users.Services
     {
         Task<User> CreateUser(UserDTO userDTO);
         User Get(Guid userId);
+        Task<User> GetByEmail(String email);
     }
     public class UserService : IUserService
     {
@@ -119,6 +124,10 @@ namespace CertificatesWebApp.Users.Services
                 throw new ResourceNotFoundException("User not found!");
             }
             return user;
+        }
+        public async Task<User> GetByEmail(String email)
+        {
+            return await _userRepository.FindByEmail(email);
         }
     }
 }

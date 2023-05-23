@@ -48,7 +48,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5173")
+            builder.WithOrigins("http://localhost:5173", "https://accounts.google.com")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -64,6 +64,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
            options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
            options.Cookie.MaxAge = options.ExpireTimeSpan;
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
+       }).AddGoogle(options =>
+       {
+           options.ClientId = "749091886975-avudqlppv5vb78ic1jjeq30b4gjj73f0.apps.googleusercontent.com";
+           options.ClientSecret = "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";
+           options.CallbackPath = "/api/User/handle-signin-google";
+           options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
+           options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
        });
 
 builder.Services.AddAuthorization(options =>
@@ -90,7 +97,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowReactApp");
-app.UseMiddleware<ExceptionMiddleware>(false);
+app.UseMiddleware<ExceptionMiddleware>(true);
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
