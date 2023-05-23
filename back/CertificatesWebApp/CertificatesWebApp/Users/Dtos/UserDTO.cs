@@ -22,7 +22,6 @@ namespace CertificatesWebApp.Users.Dtos
         [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\w\\s]).{12,30}$", ErrorMessage = "Password pattern is not valid (at least one lowercase, one uppercase, one numeric, one symbol and length from 12 to 30 characters).")]
         public String Password { get; set; }
 
-        [Required(ErrorMessage = "Telephone is required.")]
         [RegularExpression("^\\+381\\d{1,2}\\d{3,11}$", ErrorMessage = "Telephone number is not valid.")]
         public String Telephone { get; set; }
 
@@ -30,6 +29,16 @@ namespace CertificatesWebApp.Users.Dtos
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [Required(ErrorMessage = "Verification type is required.")]
         public VerificationType? VerificationType { get; set; }
+
+        public UserDTO(string name, string surname, string email, string password, string telephone, VerificationType? verificationType)
+        {
+            Name = name;
+            Surname = surname;
+            Email = email;
+            Password = password;
+            Telephone = telephone;
+            VerificationType = verificationType;
+        }
 
         public UserDTO()
         {

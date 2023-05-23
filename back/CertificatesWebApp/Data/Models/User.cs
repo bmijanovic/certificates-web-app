@@ -23,7 +23,7 @@ namespace Data.Models
         public String Surname { get; set; }
 
         [Column("telephone")]
-        public String Telephone { get; set; }
+        public String? Telephone { get; set; }
 
         [Column("email")]
         public String Email { get; set; }

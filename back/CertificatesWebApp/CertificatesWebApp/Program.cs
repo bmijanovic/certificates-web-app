@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5173")
+            builder.WithOrigins("http://localhost:5173", "https://accounts.google.com")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -64,7 +64,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
        {
            options.ClientId = "749091886975-avudqlppv5vb78ic1jjeq30b4gjj73f0.apps.googleusercontent.com";
            options.ClientSecret = "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";
-           options.CallbackPath = "/handle-signin-google";
+           options.CallbackPath = "/api/User/handle-signin-google";
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
        });

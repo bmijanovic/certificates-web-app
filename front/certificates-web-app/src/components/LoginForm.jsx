@@ -17,6 +17,15 @@ export default function LoginForm() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
 
+    const googleButtonStyle = {
+        color: "gray",
+         backgroundImage: 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=)',
+        backgroundColor: 'white',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: '12px 11px',
+
+    }
+
     const navigate = useNavigate()
     function submitHandler(event) {
         event.preventDefault()
@@ -39,6 +48,9 @@ export default function LoginForm() {
                 setError("An error occurred!");
             }
         });
+    }
+    function submitGoogle(event) {
+        window.location.href="https://localhost:7018/api/User/signin-google"
     }
 
     return <>
@@ -97,6 +109,17 @@ export default function LoginForm() {
                         sx={{mt:3, mb: 3 }}
                     >
                         Sign In
+                    </Button>
+                    <p style={{marginTop:20,marginBottom:20,textAlign:"center"}}>or</p>
+                    <Button
+                        type="button"
+                        onClick={submitGoogle}
+                        style={googleButtonStyle}
+                        fullWidth
+                        variant="contained"
+                        sx={{mt:3, mb: 3 }}
+                    >
+                        Continue with google
                     </Button>
                     <Stack style={{textAlign:"center"}}>
                         <Stack>

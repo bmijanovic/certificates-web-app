@@ -1,13 +1,16 @@
-﻿using CertificatesWebApp.Users.Dtos;
+﻿using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Services;
 using Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using System.Text;
 
 namespace CertificatesWebApp.Users.Controllers
 {
@@ -110,7 +113,7 @@ namespace CertificatesWebApp.Users.Controllers
                 return BadRequest("Cookie error");
             }
         }
-        [HttpGet("/signin-google")]
+        [HttpGet("/api/User/signin-google")]
         public IActionResult Login2()
         {
             var redirectUrl = Url.Action("GoogleCallback");
@@ -118,28 +121,83 @@ namespace CertificatesWebApp.Users.Controllers
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
         [HttpGet]
-        [Route("/auth/google/callback")]
+        [Route("/api/User/auth/google/callback")]
         public async Task<IActionResult> GoogleCallback()
         {
-            var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
-            if (!authenticateResult.Succeeded)
+            if (!result.Succeeded)
             {
-                return BadRequest("Authentication failed.");
+                throw new InvalidInputException("Authentication failed.");
             }
 
-            var email = authenticateResult.Principal.FindFirst(ClaimTypes.Email)?.Value;
-            var name = authenticateResult.Principal.FindFirst(ClaimTypes.Name)?.Value;
-            var phone = authenticateResult.Principal.FindFirst(ClaimTypes.OtherPhone)?.Value;
-            Console.WriteLine(phone);
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = result.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            User user = await _userService.GetByEmail(email);
+            if (user == null)
+            {
 
-            // Here, you can create a new user in your system or log in an existing user.
-            // For example:
-            // var user = await _userService.FindOrCreateUserAsync(email, name);
+                UserDTO userDTO = new UserDTO(name.Substring(0,name.IndexOf(' ')), name.Substring(name.IndexOf(' ')),email,GenerateRandomPassword(),null,VerificationType.EMAIL);
+                User newUser = await _userService.CreateUser(userDTO);
+            }
+            else
+            {
+                ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+                identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            }
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticateResult.Principal);
+            return Redirect("http://localhost:5173/certificates");
+        }
 
-            return LocalRedirect("/");
+        private string GenerateRandomPassword()
+        {
+            PasswordOptions opts = new PasswordOptions()
+            {
+                RequiredLength = 12,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireNonAlphanumeric = true,
+                RequireUppercase = true
+            };
+
+            string[] randomChars = new[] {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",    // uppercase 
+            "abcdefghijkmnopqrstuvwxyz",    // lowercase
+            "0123456789",                   // digits
+            "!@$?_-"                        // non-alphanumeric
+        };
+
+            Random rand = new Random(Environment.TickCount);
+            List<char> chars = new List<char>();
+
+            if (opts.RequireUppercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[0][rand.Next(0, randomChars[0].Length)]);
+
+            if (opts.RequireLowercase)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[1][rand.Next(0, randomChars[1].Length)]);
+
+            if (opts.RequireDigit)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[2][rand.Next(0, randomChars[2].Length)]);
+
+            if (opts.RequireNonAlphanumeric)
+                chars.Insert(rand.Next(0, chars.Count),
+                    randomChars[3][rand.Next(0, randomChars[3].Length)]);
+
+            for (int i = chars.Count; i < opts.RequiredLength
+                || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+            {
+                string rcs = randomChars[rand.Next(0, randomChars.Length)];
+                chars.Insert(rand.Next(0, chars.Count),
+                    rcs[rand.Next(0, rcs.Length)]);
+            }
+
+            return new string(chars.ToArray());
         }
     }
 }
