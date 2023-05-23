@@ -16,8 +16,6 @@ namespace CertificatesWebApp.Users.Services
         Task<User> CreateUser(UserDTO userDTO);
         User Get(Guid userId);
         Task<User> GetByEmail(String email);
-        Task SendPasswordResetMail(String userEmail);
-        Task SendPasswordResetSMS(String telephone);
     }
     public class UserService : IUserService
     {
