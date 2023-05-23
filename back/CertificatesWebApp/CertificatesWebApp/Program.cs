@@ -1,10 +1,12 @@
 using CertificatesWebApp.Certificates.Repositories;
-using CertificatesWebApp.Exceptions;
+using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Security;
 using CertificatesWebApp.Users.Repositories;
 using CertificatesWebApp.Users.Services;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,7 @@ builder.Services.AddTransient<ICertificateRepository, CertificateRepository>();
 builder.Services.AddTransient<ICertificateRequestRepository, CertificateRequestRepository>();
 builder.Services.AddTransient<IConfirmationRepository, ConfirmationRepository>();
 builder.Services.AddTransient<ICredentialsRepository, CredentialsRepository>();
+builder.Services.AddTransient<IPasswordRecordRepository, PasswordRecordRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 
@@ -35,6 +38,7 @@ builder.Services.AddTransient<ICredentialsService, CredentialsService>();
 builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddTransient<ISMSService, SMSService>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IGoogleCaptchaService, GoogleCaptchaService>();
 
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
@@ -68,6 +72,19 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
        });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AuthorizationPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("TwoFactor", "Confirmed");
+        policy.RequireClaim("PasswordExpired", "False");
+    });
+});
+
+builder.Services.AddSingleton<
+    IAuthorizationMiddlewareResultHandler, AuthorizationMiddleware>();
 
 
 var app = builder.Build();

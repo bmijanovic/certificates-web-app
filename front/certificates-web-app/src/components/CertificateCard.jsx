@@ -6,6 +6,7 @@ import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import {Cancel, Download} from "@mui/icons-material";
 import {AuthContext} from "../security/AuthContext.jsx";
+import {environment} from "../security/Environment.jsx";
 
 export default function CertificateCard(props) {
     const certificate={endDate:props.data.endDate,
@@ -34,7 +35,7 @@ export default function CertificateCard(props) {
     }
     useEffect( ()=>{
         setImageSrc(certificate.isValid?"./src/assets/Valid.png":"./src/assets/Invalid.png");
-        axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => {
+        axios.get(environment + `/api/Certificate/ownership/${certificate.serialNumber}`).then(res => {
             setIsOwner(res.data)
         }).catch(err => {
             console.log(err)
@@ -48,7 +49,7 @@ export default function CertificateCard(props) {
         return "".concat(date[2],".",date[1],".",date[0],".")
     }
     function downloadCertificate(){
-        fetch(`https://localhost:7018/api/Certificate/download/${certificate.serialNumber}`).then((res) => {
+        fetch(environment + `/api/Certificate/download/${certificate.serialNumber}`).then((res) => {
             return res.blob();
         }).then(blob => {
             const link = document.createElement('a');
@@ -60,7 +61,7 @@ export default function CertificateCard(props) {
         });
     }
     function downloadKeyCertificate(){
-        fetch(`https://localhost:7018/api/Certificate/download/key/${certificate.serialNumber}`).then((res) => {
+        fetch(environment + `/api/Certificate/download/key/${certificate.serialNumber}`).then((res) => {
             return res.blob();
         }).then(blob => {
             const link = document.createElement('a');
@@ -72,7 +73,7 @@ export default function CertificateCard(props) {
         });
     }
     function withdrawCertificate(){
-        axios.get(`https://localhost:7018/api/Certificate/withdraw/${certificate.serialNumber}`).then(() => {
+        axios.get(environment + `/api/Certificate/withdraw/${certificate.serialNumber}`).then(() => {
             certificate.isValid=false;
             window.location.reload(false);
 
@@ -80,7 +81,7 @@ export default function CertificateCard(props) {
     }
     const ownershipQuery = useQuery({
         queryKey: ["certificateOwnership"],
-        queryFn: () => axios.get(`https://localhost:7018/api/Certificate/ownership/${certificate.serialNumber}`).then(res => res.data).catch(err => {console.log(err)})});
+        queryFn: () => axios.get(environment + `/api/Certificate/ownership/${certificate.serialNumber}`).then(res => res.data).catch(err => {console.log(err)})});
 
     // console.log(ownershipQuery)
 

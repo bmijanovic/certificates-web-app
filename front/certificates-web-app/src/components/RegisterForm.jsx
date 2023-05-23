@@ -23,6 +23,8 @@ import {
 } from "@mui/material";
 import {LockOutlined} from "@mui/icons-material";
 import Button from "@mui/material/Button";
+import {environment} from "../security/Environment.jsx";
+import {GoogleReCaptcha} from "react-google-recaptcha-v3";
 
 export default function RegisterForm() {
     const [email, setEmail] = useState("")
@@ -32,7 +34,9 @@ export default function RegisterForm() {
     const [telephone, setTelephone] = useState("")
     const [error, setError] = useState("")
     const [verificationType, setVerificationType] = useState("email");
-
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [token, setToken] = useState("")
+    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
     const navigate = useNavigate()
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -45,6 +49,14 @@ export default function RegisterForm() {
 
     }
 
+
+    const handleVerify = (t) => {
+        setToken(t);
+    }
+
+    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
+
+
     const redirectToLogin = () => {
         navigate("/login");
     };
@@ -55,13 +67,14 @@ export default function RegisterForm() {
     function handleSubmit(event) {
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/register`, {
+        axios.post(environment + `/api/User/register`, {
             name: name,
             surname: surname,
             email: email,
             password: password,
             telephone: telephone,
-            verificationType: verificationType
+            verificationType: verificationType,
+            token: token
         }).then(res => {
             if (res.status === 200){
                 setDialogOpen(true);
@@ -200,6 +213,7 @@ export default function RegisterForm() {
                     </Stack>
                 </Box>
             </Box>
+            {recaptcha}
         </Container>
         <Dialog
             open={dialogOpen}

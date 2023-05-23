@@ -1,4 +1,4 @@
-import React, {useState, useRef, useContext} from "react";
+import React, {useState, useRef, useContext, useCallback, useEffect} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {useNavigate} from "react-router-dom";
 import Button from '@mui/material/Button';
@@ -16,9 +16,12 @@ import dayjs from "dayjs";
 import {DatePicker} from "@mui/x-date-pickers";
 import axios from "axios";
 import {AuthContext} from "../security/AuthContext.jsx";
+import {environment} from "../security/Environment.jsx";
+import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
+import {GoogleReCaptcha} from "react-google-recaptcha-v3";
 
 
-export default function RequestForm() {
+export default function RequestForm(callback, deps) {
     const [serialNumber, setSerialNumber] = useState("")
     const [certificateType, setCertificateType] = useState("End")
     const [endDate, setEndDate] = useState("2000-01-01T00:00:00.000000Z")
@@ -28,30 +31,28 @@ export default function RequestForm() {
     const [c, setC] = useState("")
     const [flags, setFlags] = useState([])
     const { isAuthenticated, role, isLoading } = useContext(AuthContext);
-
-    //staviti za svako polje
-
-    const queryClient = useQueryClient()
+    const [token, setToken] = useState("")
+    const [refreshReCaptcha, setRefreshReCaptcha] = useState(false);
     const navigate = useNavigate()
 
+
+
+    const handleVerify = (t) => {
+        setToken(t);
+    }
+
+    const recaptcha = React.useMemo( () => <GoogleReCaptcha onVerify={handleVerify} refreshReCaptcha={refreshReCaptcha} />, [refreshReCaptcha] );
     function submitHandler(event) {
         event.preventDefault()
-        console.log(serialNumber)
-        console.log(certificateType.toUpperCase())
-        console.log(endDate)
-        console.log(hashAlgorithm)
-        console.log(o)
-        console.log(ou)
-        console.log(c)
-        console.log(flags.sort().join(','))
-        // requestCertificateMutation.mutate()
+        setRefreshReCaptcha(r => !r);
         sendRequest(event)
+
     }
 
     function sendRequest(event)
     {
         event.preventDefault();
-        axios.post("https://localhost:7018/api/CertificateRequest/", {
+        axios.post(environment + "/api/CertificateRequest/", {
             parentSerialNumber: serialNumber,
             o: o,
             ou: ou,
@@ -59,7 +60,8 @@ export default function RequestForm() {
             endDate: endDate,
             type: certificateType.toUpperCase(),
             hashAlgorithm: hashAlgorithm,
-            flags: flags.sort().join(',')
+            flags: flags.sort().join(','),
+            token: token,
         }).then(res => {
             if (res.status === 200){
                 navigate("/requests");
@@ -67,6 +69,7 @@ export default function RequestForm() {
         }).catch((error) => {
             console.log(error);
         });
+
     }
 
     function checkFlag(event) {
@@ -122,9 +125,9 @@ export default function RequestForm() {
                         <FormControlLabel control={<Checkbox value="5" onChange={(event) => checkFlag(event)}/>} label={"KeyEncipherment"}/>
                         <FormControlLabel control={<Checkbox value="7" onChange={(event) => checkFlag(event)}/>} label={"DigitalSignature"}/>
                     </FormGroup>
-                </div>
-
+                </div>`
                 <Button sx={{mt: 2}} variant="contained" type="submit">Send Request</Button>
+                {recaptcha}
             </form>
         </div>
     </>

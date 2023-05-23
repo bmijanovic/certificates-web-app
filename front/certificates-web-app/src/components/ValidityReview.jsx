@@ -9,7 +9,7 @@ export default function ValidityReview(props) {
     const [imageSrc, setImageSrc] = React.useState("./src/assets/Valid.png");
     useEffect(()=>{
         setImageSrc(valid?"./src/assets/Valid.png":"./src/assets/Invalid.png");
-    },[])
+    },[valid])
 
     return <>
         <div style={{alignItems:"center", display: "flex", flexDirection:"column", margin: "50px"}}>

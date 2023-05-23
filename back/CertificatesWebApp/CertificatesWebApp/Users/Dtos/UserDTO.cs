@@ -29,6 +29,8 @@ namespace CertificatesWebApp.Users.Dtos
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [Required(ErrorMessage = "Verification type is required.")]
         public VerificationType? VerificationType { get; set; }
+        
+        public String Token { get; set; }
 
         public UserDTO(string name, string surname, string email, string password, string telephone, VerificationType? verificationType)
         {

@@ -18,27 +18,26 @@ namespace CertificatesWebApp.Users.Services
         Task<User> GetByEmail(String email);
         Task SendPasswordResetMail(String userEmail);
         Task SendPasswordResetSMS(String telephone);
-
     }
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IConfirmationRepository _confirmationRepository;
-        private readonly ICredentialsRepository _credentialsRepository;
         private readonly IConfirmationService _confirmationService;
         private readonly IMailService _mailService;
         private readonly ISMSService _smsService;
+        private readonly IUserRepository _userRepository;
+        private readonly IConfirmationRepository _confirmationRepository;
+        private readonly ICredentialsRepository _credentialsRepository;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
             IConfirmationRepository confirmationRepository, IConfirmationService confirmationService, 
             IMailService mailService, ISMSService smsService)
         {
-            _userRepository = userRepository;
             _confirmationService = confirmationService;
-            _credentialsRepository = credentialsRepository;
-            _confirmationRepository = confirmationRepository;
             _mailService = mailService;
             _smsService = smsService;
+            _userRepository = userRepository;
+            _credentialsRepository = credentialsRepository;
+            _confirmationRepository = confirmationRepository;
         }
 
         public async Task<User> CreateUser(UserDTO userDTO)
@@ -57,7 +56,7 @@ namespace CertificatesWebApp.Users.Services
             if (potentialUser != null)
             {
                 Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
-                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
+                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
                 {
                     _confirmationRepository.Delete(potentialUserConfirmation.Id);
                     _userRepository.Delete(potentialUserConfirmation.User.Id);
@@ -72,7 +71,7 @@ namespace CertificatesWebApp.Users.Services
             if (potentialUser != null)
             {
                 Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
-                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
+                if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
                 {
                     _confirmationRepository.Delete(potentialUserConfirmation.Id);
                     _userRepository.Delete(potentialUserConfirmation.User.Id);
@@ -91,12 +90,12 @@ namespace CertificatesWebApp.Users.Services
             user.IsActivated = false;
             user = _userRepository.Create(user);
 
-            Confirmation confirmation = await _confirmationService.CreateActivationConfirmation(user);
+            Confirmation confirmation = await _confirmationService.CreateActivationConfirmation(user.Id);
 
             Credentials credentials = new Credentials();
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
             credentials.User = user;
-            credentials.ExpiratonDate = DateTime.Now.AddDays(30);
+            credentials.ExpiratonDate = DateTime.Now.AddMonths(3);
             _credentialsRepository.Create(credentials);
 
             try
@@ -119,52 +118,14 @@ namespace CertificatesWebApp.Users.Services
             }
         }
 
-        public async Task SendPasswordResetMail(String userEmail) { 
-            User user = await _userRepository.FindByEmail(userEmail);
-            if (user == null)
-            {
-                throw new InvalidInputException("User with that email does not exist!");
-            }
-            else
-            {
-                Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
-                try
-                {
-                    await _mailService.SendPasswordResetMail(user, confirmation.Code);
-                }
-                catch (Exception)
-                {
-                    _confirmationRepository.Delete(confirmation.Id);
-                    throw new InvalidInputException("An error with Mail service has occured!");
-                }
-            }
-
-        }
-
-        public async Task SendPasswordResetSMS(String telephone) {
-            User user = await _userRepository.FindByTelephone(telephone);
-            if (user == null)
-            {
-                throw new InvalidInputException("User with that telephone number does not exist!");
-            }
-            else
-            {
-                Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user);
-                try
-                {
-                    await _smsService.SendPasswordResetSMS(user, confirmation.Code);
-                }
-                catch (Exception)
-                {
-                    _confirmationRepository.Delete(confirmation.Id);
-                    throw new InvalidInputException("An error with SMS service has occured!");
-                }
-            }
-        }
-
         public User Get(Guid userId)
         {
-            return _userRepository.Read(userId);
+            User user = _userRepository.Read(userId);
+            if (user == null)
+            {
+                throw new ResourceNotFoundException("User not found!");
+            }
+            return user;
         }
         public async Task<User> GetByEmail(String email)
         {

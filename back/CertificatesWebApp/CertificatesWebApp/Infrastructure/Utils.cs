@@ -1,7 +1,8 @@
 ﻿using System.Net;
 using System.Net.Mime;
+using CertificatesWebApp.Exceptions;
 
-namespace CertificatesWebApp.Exceptions
+namespace CertificatesWebApp.Infrastructure
 {
     internal static class Utils
     {

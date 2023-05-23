@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Twilio.Rest.Trunking.V1.Trunk;
 
 namespace CertificatesWebApp.Users.Dtos
 {
@@ -13,5 +14,7 @@ namespace CertificatesWebApp.Users.Dtos
         [DataType(DataType.Password)]
         [Required(ErrorMessage = "Password is required.")]
         public String Password { get; set; }
+
+        public String Token { get; set; }
     }
 }

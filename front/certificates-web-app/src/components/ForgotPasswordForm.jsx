@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
+import {environment} from "../security/Environment.jsx";
 
 export default function ForgotPasswordForm() {
     const [input, setInput] = useState("")
@@ -25,11 +26,11 @@ export default function ForgotPasswordForm() {
         navigate("/login");
     };
 
-    function handleSubmit(event) {
+    function handleSubmit(event){
         event.preventDefault()
 
         if (verificationType === "email"){
-            axios.post(`https://localhost:7018/api/User/sendResetPasswordMail/` + input)
+            axios.post(environment + `/api/User/sendResetPasswordMail/` + input)
                 .then(res => {
                     if (res.status === 200){
                         setDialogOpen(true);
@@ -39,7 +40,7 @@ export default function ForgotPasswordForm() {
             });
         }
         else{
-            axios.post(`https://localhost:7018/api/User/sendResetPasswordSMS/` + input)
+            axios.post(environment + `/api/User/sendResetPasswordSMS/` + input)
                 .then(res => {
                     if (res.status === 200){
                         setDialogOpen(true);

@@ -17,6 +17,7 @@ import {
 import { TabPanel, TabContext } from '@mui/lab';
 import {AuthContext} from "../security/AuthContext.jsx";
 import CertificateCard from "../components/CertificateCard.jsx";
+import {environment} from "../security/Environment.jsx";
 
 
 
@@ -31,20 +32,20 @@ export default function AllCertificateRequests() {
     const { isAuthenticated, role, isLoading } = useContext(AuthContext);
 
 
-    const certificateRequestsQuery = useQuery({
-        queryKey: ["certificateRequest"],
-        queryFn: () => axios.get("https://localhost:7018/api/CertificateRequest").then(res => res.data).catch(err => {console.log(err)})
-    })
-
-    const allCertificateRequestsQuery = useQuery({
-        queryKey: ["allCertificateRequest"],
-        queryFn: () => axios.get("https://localhost:7018/api/CertificateRequest/getAll").then(res => res.data).catch(err => {console.log(err)})
-    })
-
-    const approvalCertificateRequestsQuery = useQuery({
-        queryKey: ["approvalCertificateRequest"],
-        queryFn: () => axios.get("https://localhost:7018/api/CertificateRequest/forApproval").then(res => res.data).catch(err => {console.log(err)})
-    })
+    // const certificateRequestsQuery = useQuery({
+    //     queryKey: ["certificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest").then(res => res.data).catch(err => {console.log(err)})
+    // })
+    //
+    // const allCertificateRequestsQuery = useQuery({
+    //     queryKey: ["allCertificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest/getAll").then(res => res.data).catch(err => {console.log(err)})
+    // })
+    //
+    // const approvalCertificateRequestsQuery = useQuery({
+    //     queryKey: ["approvalCertificateRequest"],
+    //     queryFn: () => axios.get(environment + "/api/CertificateRequest/forApproval").then(res => res.data).catch(err => {console.log(err)})
+    // })
 
     const handleChange = (event, newValue) => {
         setValue(newValue.props.value);
@@ -65,7 +66,7 @@ export default function AllCertificateRequests() {
     useEffect(() => {
         switch (value) {
             case 0:
-                axios.get(`https://localhost:7018/api/CertificateRequest?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                axios.get(environment + `/api/CertificateRequest?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
                     setAcceptable(false)
@@ -74,7 +75,7 @@ export default function AllCertificateRequests() {
                 });
                 break;
             case 1:
-                axios.get(`https://localhost:7018/api/CertificateRequest/forApproval?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                axios.get(environment + `/api/CertificateRequest/forApproval?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
                     setAcceptable(true)
@@ -83,7 +84,7 @@ export default function AllCertificateRequests() {
                 });
                 break;
             case 2:
-                axios.get(`https://localhost:7018/api/CertificateRequest/getAll?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
+                axios.get(environment + `/api/CertificateRequest/getAll?PageNumber=${page + 1}&PageSize=${rowsPerPage}`).then(res => {
                     setTotalCount(res.data.totalCount);
                     setCertificateRequests(res.data.certificatesRequest)
                     setAcceptable(false)

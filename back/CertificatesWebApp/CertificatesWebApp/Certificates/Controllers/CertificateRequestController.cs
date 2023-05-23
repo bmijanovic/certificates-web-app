@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using CertificatesWebApp.Security;
 
 namespace CertificatesWebApp.Certificates.Controllers
 {
@@ -13,13 +14,15 @@ namespace CertificatesWebApp.Certificates.Controllers
     public class CertificateRequestController : ControllerBase
     {
         private readonly ICertificateRequestService _certificateRequestService;
-        public CertificateRequestController(ICertificateRequestService certificateRequestService)
+        private readonly IGoogleCaptchaService _googleCaptchaService;
+        public CertificateRequestController(ICertificateRequestService certificateRequestService, IGoogleCaptchaService googleCaptchaService)
         {
             _certificateRequestService = certificateRequestService;
+            _googleCaptchaService = googleCaptchaService;
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult> MakeRequestForCertificate([FromBody] CertificateRequestDTO dto)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -28,7 +31,8 @@ namespace CertificatesWebApp.Certificates.Controllers
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String role = identity.FindFirst(ClaimTypes.Role).Value;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
+                bool captchaResult = await _googleCaptchaService.VerifyToken(dto.Token);
+                if (!captchaResult) return BadRequest("ReCaptcha error!");
                 await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
                 
                 return Ok("Certificate request created successfully!");
@@ -40,7 +44,7 @@ namespace CertificatesWebApp.Certificates.Controllers
         }
 
         [HttpGet]
-        [Authorize()]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForUser([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -60,7 +64,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         [HttpGet]
         [Route("forApproval")]
-        [Authorize()]
+        [Authorize(Policy = "AuthorizationPolicy")]
         public async Task<ActionResult<List<AllCertificateRequestsDTO>>> GetRequestsForApproval([FromQuery] PageParametersDTO pageParameters)
         {
             AuthenticateResult result = await HttpContext.AuthenticateAsync();
@@ -81,7 +85,7 @@ namespace CertificatesWebApp.Certificates.Controllers
 
         [HttpGet]
         [Route("getAll")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin", Policy = "AuthorizationPolicy")]
         public ActionResult<List<AllCertificateRequestsDTO>> GetAllRequests([FromQuery] PageParametersDTO pageParameters)
         {
             List<GetCertificateRequestDTO> allRequests = _certificateRequestService.GetAll();

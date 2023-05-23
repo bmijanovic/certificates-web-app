@@ -154,7 +154,7 @@ namespace CertificatesWebApp.Users.Services
             if (certificate == null) throw new InvalidInputException("Certificate does not exist!");
             GetCertificateDTO dto = new GetCertificateDTO(certificate);
             User owner = _userService.Get(certificate.OwnerId);
-            User issuer = _userService.Get(certificate.IssuerId);
+            User issuer = certificate.IssuerId == Guid.Empty? null: _userService.Get(certificate.IssuerId);
             dto.Owner = owner.Name + " " + owner.Surname;
             if (issuer != null)
                 dto.Issuer = issuer.Name + " " + issuer.Surname;

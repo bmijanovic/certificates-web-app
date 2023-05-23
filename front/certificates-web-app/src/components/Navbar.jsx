@@ -13,7 +13,13 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
+import {environment} from "../security/Environment.jsx";
+import {useContext} from "react";
+import {AuthContext} from "../security/AuthContext.jsx";
 export default function Navbar() {
+    const { isAuthenticated, isTwoFactorVerified,
+        isPasswordExpired } = useContext(AuthContext);
+
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
     const [value, setValue] = React.useState(0);
@@ -57,7 +63,7 @@ export default function Navbar() {
         handleCloseNavMenu(event)
         event.preventDefault()
 
-        axios.post(`https://localhost:7018/api/User/logout`)
+        axios.post(environment + `/api/User/logout`)
             .then(res => {
                 if (res.status === 200){
                     navigate(0);
@@ -121,7 +127,8 @@ export default function Navbar() {
                             </MenuItem>
                         </Menu>
                     </Box>
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                    {isTwoFactorVerified && !isPasswordExpired &&
+                        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             <Button
                                 key="certificates"
                                 onClick={handleCertificatesClick}
@@ -129,28 +136,29 @@ export default function Navbar() {
                             >
                                 Certificates
                             </Button>
-                        <Button
-                            key="requests"
-                            onClick={handleRequestsClick}
-                            sx={{ my: 2, color: 'white', display: 'block' }}
-                        >
-                            Requests
-                        </Button>
-                        <Button
-                            key="generate"
-                            onClick={handleGenerateClick}
-                            sx={{ my: 2, color: 'white', display: 'block' }}
-                        >
-                            Create Certificate
-                        </Button>
-                        <Button
-                            key="validity"
-                            onClick={handleValidityClick}
-                            sx={{ my: 2, color: 'white', display: 'block' }}
-                        >
-                            Check Validity
-                        </Button>
-                    </Box>
+                            <Button
+                                key="requests"
+                                onClick={handleRequestsClick}
+                                sx={{ my: 2, color: 'white', display: 'block' }}
+                            >
+                                Requests
+                            </Button>
+                            <Button
+                                key="generate"
+                                onClick={handleGenerateClick}
+                                sx={{ my: 2, color: 'white', display: 'block' }}
+                            >
+                                Create Certificate
+                            </Button>
+                            <Button
+                                key="validity"
+                                onClick={handleValidityClick}
+                                sx={{ my: 2, color: 'white', display: 'block' }}
+                            >
+                                Check Validity
+                            </Button>
+                        </Box>
+                    }
 
                     <Box sx={{ flexGrow: 0,display: { xs: 'none', md: 'flex' }  }}>
                         <Button
