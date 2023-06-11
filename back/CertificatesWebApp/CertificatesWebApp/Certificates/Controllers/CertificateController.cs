@@ -152,19 +152,27 @@ namespace CertificatesWebApp.Certificates.Controllers
         public ActionResult<GetCertificateDTO> CheckValidityCertificate(IFormFile certificate)
         {
             if (certificate.Length == 0)
-            {
                 return BadRequest("No file uploaded.");
-            }
 
-            // Read the file data into a byte array
+            if (certificate.Length >= 5 * 1024)
+                return BadRequest("Too long file to be a certificate");
+
             byte[] data;
             using (BinaryReader reader = new BinaryReader(certificate.OpenReadStream()))
             {
                 data = reader.ReadBytes((int)certificate.Length);
             }
 
-            // Create an X509Certificate2 object from the byte array
-            X509Certificate2 x509Certificate = new X509Certificate2(data);
+
+            X509Certificate2 x509Certificate;
+            try
+            {
+               x509Certificate = new X509Certificate2(data);
+            }
+            catch (Exception e)
+            {
+                return BadRequest("This is not valid certificate!");
+            }
             GetCertificateDTO certificateDTO = _certificateService.makeCertificateDTO(x509Certificate.SerialNumber);
             certificateDTO.Valid = _certificateService.IsValid(x509Certificate.SerialNumber);
             return Ok(certificateDTO);

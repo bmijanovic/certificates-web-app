@@ -155,7 +155,7 @@ namespace CertificatesWebApp.Users.Services
                 throw new InvalidInputException("User with that telephone number does not exist!");
             }
 
-            Confirmation confirmation = await _confirmationService.CreateResetPasswordConfirmation(user.Id);
+            Confirmation confirmation = await _confirmationService.CreateTwoFactorConfirmation(user.Id);
             try
             {
                 await _smsService.SendTwoFactorSMS(user, confirmation.Code);
