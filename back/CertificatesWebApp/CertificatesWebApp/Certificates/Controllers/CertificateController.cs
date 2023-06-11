@@ -19,11 +19,13 @@ namespace CertificatesWebApp.Certificates.Controllers
         private readonly ICertificateService _certificateService;
         private readonly ICertificateRequestService _certificateRequestService;
         private readonly IUserService _userService;
-        public CertificateController(ICertificateService certificateService, ICertificateRequestService certificateRequestService, IUserService userService)
+        private readonly ILogger<CertificateController> _logger;
+        public CertificateController(ICertificateService certificateService, ICertificateRequestService certificateRequestService, IUserService userService, ILogger<CertificateController> logger)
         {
             _certificateService = certificateService;
             _certificateRequestService = certificateRequestService;
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -40,7 +42,8 @@ namespace CertificatesWebApp.Certificates.Controllers
 
                 checkUserPermission(userId, role, certificateRequestId);
                 _certificateService.AcceptCertificate(certificateRequestId);
-
+                
+                _logger.LogInformation("User {@Id} successfully accepted certificate", userId);
                 return Ok("Certificate accepted successfully!");
             }
             else
@@ -183,7 +186,6 @@ namespace CertificatesWebApp.Certificates.Controllers
         [Route("")]
         public async Task<ActionResult<AllCertificatesDTO>> GetAll([FromQuery] PageParametersDTO pageParameters)
         {
-   
             return new AllCertificatesDTO(_certificateService.GetAll().ToList().Count,_certificateService.GetAllPagable(pageParameters).Select(c=> new GetCertificatePreviewDTO(c,(c.IssuerId!=Guid.Empty)?_userService.Get(c.IssuerId).Name + _userService.Get(c.IssuerId).Surname:"")).ToList());
 
         }
@@ -199,6 +201,7 @@ namespace CertificatesWebApp.Certificates.Controllers
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 IEnumerable<Certificate> certificates = await _certificateService.GetAllByUser(userId);
                 IEnumerable<Certificate> certificatesPageable = await _certificateService.GetAllByUserPagable(pageParameters,userId);
+                _logger.LogInformation("Korisnik sa id {@Id} je portrazio sve sertifikate", userId);
                 return new AllCertificatesDTO(certificates.Count(), certificatesPageable.Select(c => new GetCertificatePreviewDTO(c, (c.IssuerId != Guid.Empty) ? _userService.Get(c.IssuerId).Name + _userService.Get(c.IssuerId).Surname : "")).ToList());
             }
             else
@@ -241,8 +244,10 @@ namespace CertificatesWebApp.Certificates.Controllers
 
             if ((issuer == null && role != "Admin") || (issuer != null && issuer.Id != Guid.Parse(userId)))
             {
+                _logger.LogInformation("User {@Id} do not have permission for this action", userId);
                 throw new Exception("You don't have permission!");
             }
+            _logger.LogInformation("User {@Id} have permission for this action", userId);
         }
 
     }
