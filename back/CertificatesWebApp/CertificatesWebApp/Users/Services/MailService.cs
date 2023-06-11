@@ -14,7 +14,11 @@ namespace CertificatesWebApp.Users.Services
 
     public class MailService : IMailService
     {
-        public MailService() { }
+        private readonly ILogger<MailService> _logger;
+        public MailService(ILogger<MailService> logger)
+        {
+            _logger = logger;
+        }
 
         public async Task SendActivationMail(User user, int code) {
             StreamReader sr = new StreamReader("sendgrid_api_key.txt");
@@ -37,8 +41,10 @@ namespace CertificatesWebApp.Users.Services
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogError("Activation mail not sent to user {@Id} due to mail server error", user.Id);
                 throw new Exception("Mail error");
             }
+            _logger.LogError("Activation mail sent to user {@Id} successfully", user.Id);
         }
 
         public async Task SendPasswordResetMail(User user, int code) {
@@ -62,8 +68,10 @@ namespace CertificatesWebApp.Users.Services
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogError("Password reset mail not sent to user {@Id} due to mail server error", user.Id);
                 throw new Exception("Mail error");
             }
+            _logger.LogError("Password reset mail sent to user {@Id} successfully", user.Id);
         }
 
         public async Task SendTwoFactorMail(User user, int code)
@@ -89,8 +97,10 @@ namespace CertificatesWebApp.Users.Services
 
             if (!response.IsSuccessStatusCode)
             {
+                _logger.LogError("Two factor verification not sent to user {@Id} due to mail server error", user.Id);
                 throw new Exception("Mail error");
             }
+            _logger.LogError("Two factor verification mail sent to user {@Id} successfully", user.Id);
         }
     }
 }
