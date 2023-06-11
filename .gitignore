@@ -1203,4 +1203,5 @@ back/CertificatesWebApp/CertificatesWebApp/sendgrid_api_key.txt
 back/CertificatesWebApp/CertificatesWebApp/twilio_credentials.txt
 back/CertificatesWebApp/CertificatesWebApp/recaptcha_key.txt
 back/CertificatesWebApp/CertificatesWebApp/recaptcha-keys.txt
+back/CertificatesWebApp/CertificatesWebApp/oauth_key.txt
 front/certificates-web-app/.env
