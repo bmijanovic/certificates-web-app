@@ -79,6 +79,15 @@ export default function RegisterForm() {
             }
         }).catch((error) => {
             console.log(error);
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Resource not found!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Invalid input!");
+            }
+            else{
+                setError("An error occurred!");
+            }
         });
     }
 
@@ -164,7 +173,7 @@ export default function RegisterForm() {
                         </Grid>
                     </Grid>
                     <div>
-                        <InputLabel style={{color:"red"}}>{error}</InputLabel>
+                        <InputLabel style={{color:"red"}} sx={{mt: 2}}>{error}</InputLabel>
                     </div>
                     <FormControl
                         sx={{mt: 2}}>

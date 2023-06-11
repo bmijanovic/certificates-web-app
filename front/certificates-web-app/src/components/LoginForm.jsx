@@ -49,7 +49,7 @@ export default function LoginForm() {
                 setError("Invalid email or password!");
             }
             else if (error.response?.status !== undefined && error.response.status === 400){
-                setError("Account is not activated!");
+                setError("Invalid input!");
             }
             else{
                 setError("An error occurred!");

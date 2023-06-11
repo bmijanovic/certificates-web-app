@@ -15,9 +15,10 @@ import axios from "axios";
 import {environment} from "../security/Environment.jsx";
 
 export default function TwoFactorVerificationForm() {
-    const [code, setCode] = useState("")
-    const [verificationType, setVerificationType] = useState("email")
+    const [code, setCode] = useState("");
+    const [verificationType, setVerificationType] = useState("email");
     const navigate = useNavigate();
+    const [error, setError] = useState("");
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const verifyCode = () => {
@@ -28,6 +29,15 @@ export default function TwoFactorVerificationForm() {
                 }
             }).catch((error) => {
             console.log(error);
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Resource not found!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Invalid input!");
+            }
+            else{
+                setError("An error occurred!");
+            }
         });
 
     };
@@ -42,6 +52,15 @@ export default function TwoFactorVerificationForm() {
                 }
             }).catch((error) => {
             console.log(error);
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Resource not found!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Invalid input!");
+            }
+            else{
+                setError("An error occurred!");
+            }
         });
     }
 
@@ -110,6 +129,9 @@ export default function TwoFactorVerificationForm() {
                     InputProps={{style: {fontSize: 30, width: 180}}}
                     onChange={(e) => {setCode(e.target.value)}}
                 />
+                <div>
+                    <InputLabel style={{color:"red"}} sx={{mt:2}}>{error}</InputLabel>
+                </div>
 
             </DialogContent>
             <DialogActions style={{display:"flex", justifyContent:"center"}}>

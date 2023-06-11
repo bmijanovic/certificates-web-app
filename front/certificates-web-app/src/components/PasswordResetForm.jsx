@@ -34,7 +34,17 @@ export default function PasswordResetForm() {
                     setCodeExists(true)
                 }
             }).catch((error) => {
+            console.log(error);
             setCodeExists(false);
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Resource not found!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Invalid input!");
+            }
+            else{
+                setError("An error occurred!");
+            }
         });
     }
 
@@ -65,6 +75,15 @@ export default function PasswordResetForm() {
                 }
             }).catch((error) => {
             console.log(error);
+            if (error.response?.status !== undefined && error.response.status === 404){
+                setError("Resource not found!");
+            }
+            else if (error.response?.status !== undefined && error.response.status === 400){
+                setError("Invalid input!");
+            }
+            else{
+                setError("An error occurred!");
+            }
         });
     }
 
@@ -112,7 +131,7 @@ export default function PasswordResetForm() {
                         onChange={(e) => {setPasswordConfirmation(e.target.value)}}
                     />
                         <div>
-                            <InputLabel style={{color:"red"}}>{error}</InputLabel>
+                            <InputLabel style={{color:"red"}} sx={{mt:2}}>{error}</InputLabel>
                         </div>
                         <Button
                             type="submit"
