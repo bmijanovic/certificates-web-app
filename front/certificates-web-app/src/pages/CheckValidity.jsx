@@ -17,7 +17,6 @@ export default function CheckValidity(){
             checkValidityBySerialNumbber(serialNumber)
         }
         else {
-            console.log(file)
             if(file.name.split('.')[1] === "crt" && file.type === "application/x-x509-ca-cert")
             {
                 checkValidityByUploadedFile(file)
