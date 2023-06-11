@@ -1204,4 +1204,5 @@ back/CertificatesWebApp/CertificatesWebApp/twilio_credentials.txt
 back/CertificatesWebApp/CertificatesWebApp/recaptcha_key.txt
 back/CertificatesWebApp/CertificatesWebApp/recaptcha-keys.txt
 back/CertificatesWebApp/CertificatesWebApp/oauth_key.txt
+back/CertificatesWebApp/CertificatesWebApp/Logs/
 front/certificates-web-app/.env
