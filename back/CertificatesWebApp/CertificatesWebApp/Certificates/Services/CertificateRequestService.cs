@@ -26,22 +26,27 @@ namespace CertificatesWebApp.Users.Services
         private readonly ICertificateRepository _certificateRepository;
         private readonly ICertificateService _certificateService;
         private readonly IUserService _userService;
+        private readonly ILogger<CertificateRequestService> _logger;
 
         public CertificateRequestService(ICertificateRequestRepository certificateRequestRepository, ICertificateService certificateService, 
-            ICertificateRepository certificateRepository, IUserService userService)
+            ICertificateRepository certificateRepository, IUserService userService, ILogger<CertificateRequestService> logger)
         {
             _certificateRequestRepository = certificateRequestRepository;
             _certificateRepository = certificateRepository;
             _certificateService = certificateService;
             _userService = userService;
+            _logger = logger;
         }
 
         public async Task MakeRequestForCertificate(Guid userId, String role, CertificateRequestDTO dto)
         {
-            checkDto(dto);
+            checkDto(dto, userId);
             // ako je root ne moramo da proveravamo validnost parenta
             if (dto.Type != CertificateType.ROOT && !(await checkValidity(dto.EndDate, dto.ParentSerialNumber)))
+            {
+                _logger.LogError("User {@Id} failed to make request for certificate due to invalid request", userId);
                 throw new InvalidInputException("Invalid certificate request!");
+            }
             if(role == "Admin")
             {
                 adminMakesRequests(userId, dto);
@@ -52,18 +57,37 @@ namespace CertificatesWebApp.Users.Services
             }
         }
 
-        private void checkDto(CertificateRequestDTO dto)
+        private void checkDto(CertificateRequestDTO dto, Guid userId)
         {
             if (dto.EndDate < DateTime.Now)
+            {
+                _logger.LogError("User {@Id} failed to make request for certificate due to invalid end date", userId);
                 throw new InvalidInputException("Cannot make certificate for past!");
+            }
+
             if (dto.Type == CertificateType.ROOT && !dto.ParentSerialNumber.Equals(""))
+            {
+                _logger.LogError("User {@Id} failed to make request for root certificate based on other certificte", userId);
                 throw new InvalidInputException("Cannot make root certificate based on other certificate!");
+            }
+
             if (dto.Type != CertificateType.ROOT && dto.ParentSerialNumber.Equals(""))
+            {
+                _logger.LogError("User {@Id} failed to make request for self signed non root certificate", userId);
                 throw new InvalidInputException("Cannot make certificate on its own!");
+            }
+
             if (dto.Type == CertificateType.END && dto.Flags.Contains("2"))
+            {
+                _logger.LogError("User {@Id} failed to make request for end certificate due to wrong flags included", userId);
                 throw new InvalidInputException("End certificate cannot have this permissions!");
+            }
+
             if (dto.Type != CertificateType.END && !dto.Flags.Contains("2"))
-                throw new InvalidInputException("This type of certificates must include 4th flag");
+            {
+                _logger.LogError("User {@Id} failed to make request for root or end certificate due to wrong flags included", userId);
+                throw new InvalidInputException("This type of certificate must include 4th flag");
+            }
         }
 
         private async Task<Boolean> checkValidity(DateTime endDate, String serialNumber)
@@ -99,6 +123,7 @@ namespace CertificatesWebApp.Users.Services
         {
             if(dto.Type == CertificateType.ROOT)
             {
+                _logger.LogError("User {@Id} do not have persmission to make root certiificates", userId);
                 throw new InvalidInputException("You do not have permission to make root certificates!");
             }
             if(await amIOwner(userId, dto.ParentSerialNumber))
@@ -118,6 +143,7 @@ namespace CertificatesWebApp.Users.Services
             Certificate parentCertificate = await _certificateRepository.FindBySerialNumber(serialNumber);
             if(parentCertificate == null)
             {
+                _logger.LogError("User {@Id} failed to find certificate {@SerialNumber}", userId, serialNumber);
                 throw new InvalidInputException("Certificate does not exist!");
             }
             return userId == parentCertificate.OwnerId;

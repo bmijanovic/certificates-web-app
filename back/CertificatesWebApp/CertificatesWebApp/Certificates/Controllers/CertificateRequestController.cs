@@ -15,10 +15,12 @@ namespace CertificatesWebApp.Certificates.Controllers
     {
         private readonly ICertificateRequestService _certificateRequestService;
         private readonly IGoogleCaptchaService _googleCaptchaService;
-        public CertificateRequestController(ICertificateRequestService certificateRequestService, IGoogleCaptchaService googleCaptchaService)
+        private readonly ILogger<CertificateRequestController> _logger;
+        public CertificateRequestController(ICertificateRequestService certificateRequestService, IGoogleCaptchaService googleCaptchaService, ILogger<CertificateRequestController> logger)
         {
             _certificateRequestService = certificateRequestService;
             _googleCaptchaService = googleCaptchaService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -31,10 +33,16 @@ namespace CertificatesWebApp.Certificates.Controllers
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String role = identity.FindFirst(ClaimTypes.Role).Value;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                _logger.LogInformation("User {@Id} started process of making request for certificate", userId);
+
                 bool captchaResult = await _googleCaptchaService.VerifyToken(dto.Token);
                 if (!captchaResult) return BadRequest("ReCaptcha error!");
+                
+                
                 await _certificateRequestService.MakeRequestForCertificate(Guid.Parse(userId), role, dto);
                 
+
+                _logger.LogInformation("User {@Id} successfully created request for certificate");
                 return Ok("Certificate request created successfully!");
             }
             else
@@ -52,8 +60,11 @@ namespace CertificatesWebApp.Certificates.Controllers
             {
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+               
                 List<GetCertificateRequestDTO> allRequests = await _certificateRequestService.GetAllForUser(Guid.Parse(userId));
                 List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForUserPagable(pageParameters, Guid.Parse(userId));
+                
+                _logger.LogInformation("User {@Id} successfully get all his certificate requests", userId);
                 return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
             }
             else
@@ -72,9 +83,11 @@ namespace CertificatesWebApp.Certificates.Controllers
             {
                 ClaimsIdentity identity = result.Principal.Identity as ClaimsIdentity;
                 String userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                
                 List<GetCertificateRequestDTO> allRequests = await _certificateRequestService.GetAllForApproval(Guid.Parse(userId));
                 List<GetCertificateRequestDTO> requests = await _certificateRequestService.GetAllForApprovalPagable(pageParameters, Guid.Parse(userId));
 
+                _logger.LogInformation("User {@Id} successfully get all certificate requests for approval", userId);
                 return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
             }
             else
@@ -91,6 +104,8 @@ namespace CertificatesWebApp.Certificates.Controllers
             List<GetCertificateRequestDTO> allRequests = _certificateRequestService.GetAll();
             List<GetCertificateRequestDTO> requests = _certificateRequestService.GetAllPagable(pageParameters);
 
+            
+            _logger.LogInformation("User successfully get all certificate requests");
             return Ok(new AllCertificateRequestsDTO(allRequests.Count, requests));
         }
 
