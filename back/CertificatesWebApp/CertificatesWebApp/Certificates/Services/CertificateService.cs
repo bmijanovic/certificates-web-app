@@ -62,6 +62,15 @@ namespace CertificatesWebApp.Users.Services
                 System.Security.Cryptography.X509Certificates.CertificateRequest certificateRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(attributes,rsa, new HashAlgorithmName(algorithm), RSASignaturePadding.Pkcs1);
                 certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType==CertificateType.END), false, 0, true));
                 certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(flags, false));
+                certificateRequest.CertificateExtensions.Add(
+                new X509Extension(
+                    new AsnEncodedData(
+                        "Subject Alternative Name",
+                        new byte[] { 48, 11, 130, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116 }
+                    ),
+                    false
+                )
+            );
 
                 //X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
@@ -183,7 +192,7 @@ namespace CertificatesWebApp.Users.Services
 
         private String generateAttributes(User user, string attributes)
         {
-            string common_name = string.Concat("CN=", user.Name, " ", user.Surname);
+            string common_name = string.Concat("CN=","localhost");
             string email = string.Concat("E=", user.Email);
             string telephone = string.Concat("T=", user.Telephone).Replace("+","00");
             return string.Concat(common_name, ";", email, ";", telephone, ";", attributes);

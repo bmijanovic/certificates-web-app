@@ -6,7 +6,11 @@ using CertificatesWebApp.Users.Services;
 using Data.Context;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
+using System.Runtime.ConstrainedExecution;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +20,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 builder.Services.AddDbContext<CertificatesWebAppContext>();
 
@@ -66,8 +71,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
            options.EventsType = typeof(CustomCookieAuthenticationEvents);
        }).AddGoogle(options =>
        {
-           options.ClientId = "749091886975-avudqlppv5vb78ic1jjeq30b4gjj73f0.apps.googleusercontent.com";
-           options.ClientSecret = "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";
+           StreamReader sr = new StreamReader("oauth_key.txt");
+           String clientId = sr.ReadLine();
+           String clientSecret = sr.ReadLine();
+           options.ClientId = clientId;
+           options.ClientSecret = clientSecret;
            options.CallbackPath = "/api/User/handle-signin-google";
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
            options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
@@ -85,8 +93,28 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddSingleton<
     IAuthorizationMiddlewareResultHandler, AuthorizationMiddleware>();
+/*builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ConfigureHttpsDefaults(listenOptions =>
+    {
+        var cert = "00C6F0066DC058B5EA";
+        if (File.Exists($"Certs/{cert}.crt"))
+        {
+            var certificate = new X509Certificate2($"Certs/{cert}.crt");
+            using (RSA rsa = RSA.Create())
+            {
+                rsa.ImportRSAPrivateKey(File.ReadAllBytes($"Keys/{cert}.key"), out _);
+                certificate = certificate.CopyWithPrivateKey(rsa);
+            }
+            listenOptions.ServerCertificate=certificate;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+    });
 
-
+});*/
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -97,7 +125,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowReactApp");
-app.UseMiddleware<ExceptionMiddleware>(true);
+//app.UseMiddleware<ExceptionMiddleware>(true);
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

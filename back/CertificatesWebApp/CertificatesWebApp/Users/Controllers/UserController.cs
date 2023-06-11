@@ -244,7 +244,7 @@ namespace CertificatesWebApp.Users.Controllers
                 ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
                 identity.AddClaim(new Claim(ClaimTypes.Role, user.Discriminator));
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-                identity.AddClaim(new Claim("TwoFactor", "Confirmed"));
+                identity.AddClaim(new Claim("TwoFactor", "Unconfirmed"));
                 identity.AddClaim(new Claim("PasswordExpired", "False"));
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
             }

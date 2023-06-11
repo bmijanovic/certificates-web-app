@@ -20,7 +20,6 @@ export default function TwoFactorVerificationForm() {
     const navigate = useNavigate();
 
     const [dialogOpen, setDialogOpen] = React.useState(false);
-
     const verifyCode = () => {
         axios.post(environment + `/api/User/verifyTwoFactor/`+code)
             .then(res => {
@@ -57,13 +56,13 @@ export default function TwoFactorVerificationForm() {
                     alignItems: 'center',
                 }}
             >
-                <Typography component="h1" variant="h3">
+                <Typography component="h1" variant="h3" sx={{textAlign:"Center"}}>
                     Two factor verification
                 </Typography>
 
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                     <FormControl
-                        sx={{mt: 1, mb:1}}>
+                        sx={{mt: 1, mb:1,display:'flex',justifyContent:"center"}}>
                         <FormLabel id="radio-buttons-group-label">Get code with</FormLabel>
                         <RadioGroup
                             row
@@ -94,7 +93,7 @@ export default function TwoFactorVerificationForm() {
             <DialogTitle id="alert-dialog-title">
                 {"Verification code is sent to your " + verificationType + " inbox!"}
             </DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{display:"flex",justifyContent:"center",flexDirection:"column"}}>
                 <DialogContentText id="alert-dialog-description"
                 sx={{mb:1}}>
                     Please enter your two factor verification code:
@@ -104,6 +103,7 @@ export default function TwoFactorVerificationForm() {
                     id="Code"
                     name="Code"
                     type="number"
+                    sx={{justifyContent:"center",alignItems:"center",alignSelf:"center"}}
                     onInput = {(e) =>{
                         e.target.value = Math.max(0, parseInt(e.target.value) ).toString().slice(0,8)
                     }}
