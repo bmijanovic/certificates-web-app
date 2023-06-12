@@ -3,11 +3,7 @@ using CertificatesWebApp.Infrastructure;
 using CertificatesWebApp.Users.Dtos;
 using CertificatesWebApp.Users.Repositories;
 using Data.Models;
-using Microsoft.AspNetCore.Authentication;
-using System.Linq.Expressions;
-using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CertificatesWebApp.Users.Services
 {
@@ -25,10 +21,11 @@ namespace CertificatesWebApp.Users.Services
         private readonly IUserRepository _userRepository;
         private readonly IConfirmationRepository _confirmationRepository;
         private readonly ICredentialsRepository _credentialsRepository;
+        private readonly ILogger<SMSService> _logger;
 
         public UserService(IUserRepository userRepository, ICredentialsRepository credentialsRepository,
             IConfirmationRepository confirmationRepository, IConfirmationService confirmationService, 
-            IMailService mailService, ISMSService smsService)
+            IMailService mailService, ISMSService smsService, ILogger<SMSService> logger)
         {
             _confirmationService = confirmationService;
             _mailService = mailService;
@@ -36,6 +33,7 @@ namespace CertificatesWebApp.Users.Services
             _userRepository = userRepository;
             _credentialsRepository = credentialsRepository;
             _confirmationRepository = confirmationRepository;
+            _logger = logger;
         }
 
         public async Task<User> CreateUser(UserDTO userDTO)
@@ -46,6 +44,7 @@ namespace CertificatesWebApp.Users.Services
             {
                 foreach (var validationResult in validationResults)
                 {
+                    _logger.LogError("User registration for email {@Email} failed because sent form is not valid", userDTO.Email);
                     throw new InvalidInputException(validationResult.ErrorMessage);
                 }
             }
@@ -56,11 +55,13 @@ namespace CertificatesWebApp.Users.Services
                 Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
                 if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
                 {
+                    _logger.LogError("Registration for unactivated user with email {@Email} removed", potentialUserConfirmation.User.Email);
                     _confirmationRepository.Delete(potentialUserConfirmation.Id);
                     _userRepository.Delete(potentialUserConfirmation.User.Id);
                 }
                 else
                 {
+                    _logger.LogError("User registration for email {@Email} failed because user with that email already exists", userDTO.Email);
                     throw new InvalidInputException("User with that email already exists!");
                 }
             }
@@ -71,11 +72,13 @@ namespace CertificatesWebApp.Users.Services
                 Confirmation potentialUserConfirmation = await _confirmationRepository.FindConfirmationByUserIdAndType(potentialUser.Id, ConfirmationType.ACTIVATION);
                 if (potentialUserConfirmation != null && potentialUserConfirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
                 {
+                    _logger.LogError("Registration for unactivated user with email {@Email} removed", potentialUserConfirmation.User.Email);
                     _confirmationRepository.Delete(potentialUserConfirmation.Id);
                     _userRepository.Delete(potentialUserConfirmation.User.Id);
                 }
                 else
                 {
+                    _logger.LogError("User registration for email {@Email} failed because user with that telephone number already exists", userDTO.Email);
                     throw new InvalidInputException("User with that telephone already exists!");
                 }
             }

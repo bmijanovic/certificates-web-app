@@ -25,10 +25,12 @@ namespace CertificatesWebApp.Users.Services
         private readonly IConfirmationRepository _confirmationRepository;
         private readonly IPasswordRecordRepository _passwordRecordRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<SMSService> _logger;
 
         public CredentialsService(ICredentialsRepository credentialsRepository, IUserRepository userRepository,
             IConfirmationRepository confirmationRepository, IPasswordRecordRepository passwordRecordRepository,
-            IConfirmationService confirmationService, IMailService mailService, ISMSService smsService)
+            IConfirmationService confirmationService, IMailService mailService, ISMSService smsService,
+            ILogger<SMSService> logger)
         {
             _confirmationService = confirmationService;
             _smsService = smsService;
@@ -37,6 +39,7 @@ namespace CertificatesWebApp.Users.Services
             _userRepository = userRepository;
             _passwordRecordRepository = passwordRecordRepository;
             _confirmationRepository = confirmationRepository;
+            _logger = logger;
         }
 
         public async Task<User> Authenticate(String email, String password)
@@ -44,24 +47,28 @@ namespace CertificatesWebApp.Users.Services
             Credentials credentials = await _credentialsRepository.FindByEmail(email);
             if (credentials == null || !BCrypt.Net.BCrypt.Verify(password, credentials.Password))
             {
+                _logger.LogError("User authentication for email {@Email} failed because email or password is incorrect", email);
                 throw new ResourceNotFoundException("Email or password is incorrect!");
             }
             else if (!credentials.User.IsActivated)
             {
+                _logger.LogError("User authentication for email {@Email} failed because email or password is incorrect", email);
                 throw new InvalidInputException("User is not activated!");
             }
 
+            _logger.LogError("User authentication for email {@Email} successful", email);
             return credentials.User;
         }
 
         public async Task<bool> IsPasswordExpired(Guid userId) { 
-            return ((await _credentialsRepository.FindByUserId(userId)).ExpiratonDate.CompareTo(DateTime.UtcNow) <= 0);
+            return (await _credentialsRepository.FindByUserId(userId)).ExpiratonDate.CompareTo(DateTime.UtcNow) <= 0;
         }
 
         public async Task ResetPassword(Guid userId, PasswordResetDTO passwordResetDTO)
         {
             if (passwordResetDTO.Password != passwordResetDTO.PasswordConfirmation)
             {
+                _logger.LogError("Password reset for user {@Id} failed because new password and password confirmation is not the same", userId);
                 throw new InvalidInputException("Passwords are not same!");
             }
 
@@ -69,11 +76,13 @@ namespace CertificatesWebApp.Users.Services
 
             if (BCrypt.Net.BCrypt.Verify(passwordResetDTO.Password, credentials.Password))
             {
+                _logger.LogError("Password reset for user {@Id} failed because new password is same as current one", userId);
                 throw new InvalidInputException("You can't use current password!");
             }
 
             if (await _passwordRecordRepository.IsPasswordAlreadyUsed(credentials.User.Id, passwordResetDTO.Password))
             {
+                _logger.LogError("Password reset for user {@Id} failed because new password is same as old one", userId);
                 throw new InvalidInputException("You can't use old password!");
             }
             
@@ -83,10 +92,12 @@ namespace CertificatesWebApp.Users.Services
             passwordRecord.DateChanged = DateTime.UtcNow;
             passwordRecord.Password = credentials.Password;
             _passwordRecordRepository.Create(passwordRecord);
+            _logger.LogError("Password record for user {@Id} created successfully", userId);
 
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
             credentials.ExpiratonDate = DateTime.Now.AddMonths(3);
             _credentialsRepository.Update(credentials);
+            _logger.LogError("Password reseted for user {@Id} successfully", userId);
         }
 
         public async Task SendPasswordResetMail(String userEmail)
@@ -94,6 +105,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByEmail(userEmail);
             if (user == null)
             {
+                _logger.LogError("Sending password reset mail for email {@Email} failed because email is not found", userEmail);
                 throw new InvalidInputException("User with that email does not exist!");
             }
 
@@ -114,6 +126,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByTelephone(telephone);
             if (user == null)
             {
+                _logger.LogError("Sending password reset SMS for telephone {@Telephone} failed because telephone is not found", telephone);
                 throw new InvalidInputException("User with that telephone number does not exist!");
             }
 
@@ -133,6 +146,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByEmail(userEmail);
             if (user == null)
             {
+                _logger.LogError("Two factor mail for email {@Email} failed because email is not found", userEmail);
                 throw new InvalidInputException("User with that email does not exist!");
             }
 
@@ -152,6 +166,7 @@ namespace CertificatesWebApp.Users.Services
             User user = await _userRepository.FindByTelephone(telephone);
             if (user == null)
             {
+                _logger.LogError("Sending two factor SMS for telephone {@Telephone} failed because telephone is not found", telephone);
                 throw new InvalidInputException("User with that telephone number does not exist!");
             }
 

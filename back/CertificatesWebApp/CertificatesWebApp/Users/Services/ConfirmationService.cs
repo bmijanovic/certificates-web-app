@@ -24,14 +24,16 @@ namespace CertificatesWebApp.Users.Services
         private readonly ICredentialsRepository _credentialsRepository;
         private readonly IPasswordRecordRepository _passwordRecordRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<SMSService> _logger;
 
         public ConfirmationService(IConfirmationRepository confirmationRepository, IUserRepository userRepository,
-            IPasswordRecordRepository passwordRecordRepository,  ICredentialsRepository credentialsRepository)
+            IPasswordRecordRepository passwordRecordRepository,  ICredentialsRepository credentialsRepository, ILogger<SMSService> logger)
         {
             _confirmationRepository = confirmationRepository;
             _credentialsRepository = credentialsRepository;
             _passwordRecordRepository = passwordRecordRepository;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         public async Task ActivateAccount(int code)
@@ -39,21 +41,22 @@ namespace CertificatesWebApp.Users.Services
             Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, ConfirmationType.ACTIVATION);
             if (confirmation == null)
             {
+                _logger.LogError("Account activation for code {@Code} failed because code is invalid", code);
                 throw new ResourceNotFoundException("Activation code invalid!");
             }
 
-            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
-            {
-                confirmation.User.IsActivated = true;
-                _userRepository.Update(confirmation.User);
-                _confirmationRepository.Delete(confirmation.Id);
-            }
-            else
+            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
             {
                 _confirmationRepository.Delete(confirmation.Id);
                 _userRepository.Delete(confirmation.User.Id);
+                _logger.LogError("Account activation for code {@Code} failed because code is expired", code);
                 throw new ResourceNotFoundException("Activation code expired, please sign up again!");
             }
+
+            confirmation.User.IsActivated = true;
+            _userRepository.Update(confirmation.User);
+            _confirmationRepository.Delete(confirmation.Id);
+            _logger.LogError("Account activation for user {@Id} successful", confirmation.User.Id);
         }
 
 
@@ -61,18 +64,21 @@ namespace CertificatesWebApp.Users.Services
         {
             if (passwordResetDTO.Password != passwordResetDTO.PasswordConfirmation)
             {
+                _logger.LogError("Password reset for code {@Code} failed because new password and password confirmation is not the same", code);
                 throw new InvalidInputException("Passwords are not same!");
             }
 
             Confirmation confirmation = await _confirmationRepository.FindConfirmationByCodeAndType(code, ConfirmationType.RESET_PASSWORD);
             if (confirmation == null)
             {
+                _logger.LogError("Password reset for code {@Code} failed because code is invalid", code);
                 throw new ResourceNotFoundException("Password reset code invalid!");
             }
 
             if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
             {
                 _confirmationRepository.Delete(confirmation.Id);
+                _logger.LogError("Password reset for code {@Code} failed because code is expired", code);
                 throw new ResourceNotFoundException("Password reset code expired!");
             }
 
@@ -80,11 +86,13 @@ namespace CertificatesWebApp.Users.Services
 
             if (BCrypt.Net.BCrypt.Verify(passwordResetDTO.Password, credentials.Password))
             {
+                _logger.LogError("Password reset for user {@Id} failed because new password is same as current one", credentials.User.Id);
                 throw new InvalidInputException("You can't use current password!");
             }
 
             if (await _passwordRecordRepository.IsPasswordAlreadyUsed(credentials.User.Id, passwordResetDTO.Password))
             {
+                _logger.LogError("Password reset for user {@Id} failed because new password is same as old one", credentials.User.Id);
                 throw new InvalidInputException("You can't use old password!");
             }
 
@@ -94,41 +102,44 @@ namespace CertificatesWebApp.Users.Services
             passwordRecord.DateChanged = DateTime.UtcNow;
             passwordRecord.Password = credentials.Password;
             _passwordRecordRepository.Create(passwordRecord);
+            _logger.LogError("Password record for user {@Id} created successfully", passwordRecord.User.Id);
 
             credentials.Password = BCrypt.Net.BCrypt.HashPassword(passwordResetDTO.Password);
             credentials.ExpiratonDate = DateTime.Now.AddMonths(3);
             _credentialsRepository.Update(credentials);
             _confirmationRepository.Delete(confirmation.Id);
+            _logger.LogError("Password reseted for user {@Id} successfully", passwordRecord.User.Id);
         }
 
         public async Task VerifyTwoFactor(Guid userId, int code) {
             User user = _userRepository.Read(userId);
             if (user == null)
             {
+                _logger.LogError("Two factor verification for code {@Code} failed because user is not found", code);
                 throw new ResourceNotFoundException("User not found!");
             }
 
             Confirmation confirmation = await _confirmationRepository.FindConfirmationByUserIdAndCodeAndType(userId, code, ConfirmationType.TWO_FACTOR);
             if (confirmation == null)
             {
+                _logger.LogError("Two factor verification for code {@Code} failed because code is invalid", code);
                 throw new ResourceNotFoundException("Two factor code invalid!");
             }
 
-            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) > 0)
+            if (confirmation.ExpirationDate.CompareTo(DateTime.UtcNow) <= 0)
             {
-                _confirmationRepository.Delete(confirmation.Id);
-            }
-            else
-            {
+                _logger.LogError("Two factor verification for code {@Code} failed because code is expired", code);
                 _confirmationRepository.Delete(confirmation.Id);
                 throw new ResourceNotFoundException("Two factor code expired!");
             }
+            _confirmationRepository.Delete(confirmation.Id);
         }
 
         public async Task<Confirmation> CreateActivationConfirmation(Guid userId) {
             User user = _userRepository.Read(userId);
             if (user == null)
             {
+                _logger.LogError("Activation code creation for user {@Id} failed because user is invalid", userId);
                 throw new ResourceNotFoundException("User not found!");
             }
 
@@ -137,6 +148,7 @@ namespace CertificatesWebApp.Users.Services
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
             confirmation.ExpirationDate = DateTime.Now.AddHours(24);
             confirmation.User = user;
+            _logger.LogError("Activation code for user {@Id} created successfully", confirmation.User.Id);
             return _confirmationRepository.Create(confirmation);
         }
 
@@ -145,11 +157,13 @@ namespace CertificatesWebApp.Users.Services
             User user = _userRepository.Read(userId);
             if (user == null)
             {
+                _logger.LogError("Password reset code creation for user {@Id} failed because user is invalid", userId);
                 throw new ResourceNotFoundException("User not found!");
             }
 
             if (!user.IsActivated)
             {
+                _logger.LogError("Password reset code creation for user {@Id} failed because user is not activated", userId);
                 throw new InvalidInputException("User not activated!");
             }
 
@@ -159,6 +173,7 @@ namespace CertificatesWebApp.Users.Services
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
             confirmation.ExpirationDate = DateTime.Now.AddHours(1);
             confirmation.User = user;
+            _logger.LogError("Password reset code for user {@Id} created successfully", userId);
             return _confirmationRepository.Create(confirmation);
         }
 
@@ -167,11 +182,13 @@ namespace CertificatesWebApp.Users.Services
             User user = _userRepository.Read(userId);
             if (user == null)
             {
+                _logger.LogError("Two factor verification code creation for user {@Id} failed because user invalid", userId);
                 throw new ResourceNotFoundException("User not found!");
             }
 
             if (!user.IsActivated)
             {
+                _logger.LogError("Two factor verification code creation for user {@Id} failed because user is not activated", userId);
                 throw new InvalidInputException("User not activated!");
             }
 
@@ -181,6 +198,7 @@ namespace CertificatesWebApp.Users.Services
             confirmation.Code = await GenerateVerificationCode(VerificationCodeLength);
             confirmation.ExpirationDate = DateTime.Now.AddMinutes(10);
             confirmation.User = user;
+            _logger.LogError("Two factor verification code for user {@Id} created successfully", userId);
             return _confirmationRepository.Create(confirmation);
         }
 
