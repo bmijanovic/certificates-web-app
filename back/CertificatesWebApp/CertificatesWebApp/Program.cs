@@ -54,7 +54,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5173", "https://accounts.google.com")
+            builder.WithOrigins("http://localhost:5173", "https://accounts.google.com", "https://localhost:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -94,28 +94,14 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddSingleton<
     IAuthorizationMiddlewareResultHandler, AuthorizationMiddleware>();
-/*builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ConfigureHttpsDefaults(listenOptions =>
-    {
-        var cert = "00C6F0066DC058B5EA";
-        if (File.Exists($"Certs/{cert}.crt"))
-        {
-            var certificate = new X509Certificate2($"Certs/{cert}.crt");
-            using (RSA rsa = RSA.Create())
-            {
-                rsa.ImportRSAPrivateKey(File.ReadAllBytes($"Keys/{cert}.key"), out _);
-                certificate = certificate.CopyWithPrivateKey(rsa);
-            }
-            listenOptions.ServerCertificate=certificate;
-        }
-        else
-        {
-            throw new NotImplementedException();
-        }
-    });
 
-});*/
+builder.WebHost.UseKestrel(options => {
+    options.ListenLocalhost(7018, listenOptions => {
+        var cert = "rootcert";
+        var certificate = new X509Certificate2($"Certs/{cert}.cer");
+        listenOptions.UseHttps(certificate);
+    });
+});
 
 builder.Host.UseSerilog((context, configuration) => 
     configuration.ReadFrom.Configuration(context.Configuration));
