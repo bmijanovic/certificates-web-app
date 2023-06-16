@@ -35,20 +35,25 @@ namespace CertificatesWebApp.Users.Services
         private readonly ICertificateRepository _certificateRepository;
         private readonly ICertificateRequestRepository _certificateRequestRepository;
         private readonly IUserService _userService;
+        private readonly ILogger<CertificateRequestService> _logger;
 
-        public CertificateService(ICertificateRepository certificateRepository, ICertificateRequestRepository certificateRequestRepository, IUserService userService)
+        public CertificateService(ICertificateRepository certificateRepository, ICertificateRequestRepository certificateRequestRepository, IUserService userService, ILogger<CertificateRequestService> logger)
         {
             _certificateRepository = certificateRepository;
             _certificateRequestRepository = certificateRequestRepository;
             _userService = userService;
+            _logger = logger;
         }
         public void AcceptCertificate(Guid certificateRequestId)   
         {
             Data.Models.CertificateRequest request = _certificateRequestRepository.Read(certificateRequestId);
             User user = _userService.Get(request.OwnerId);
             User issuer=null;
-            if (request.ParentSerialNumber!="")
+            if (request.ParentSerialNumber != "")
+            {
                 issuer = _userService.Get(_certificateRepository.FindBySerialNumber(request.ParentSerialNumber).Result.OwnerId);
+                _logger.LogError("User {@Id} is trying to create non root certificate based on request {@Request}", request.OwnerId,request.Id);
+            }
 
 
             DateTime expDate= request.EndDate;
@@ -59,8 +64,8 @@ namespace CertificatesWebApp.Users.Services
             X509KeyUsageFlags flags = getFlags(flagsInput);
             using (var rsa = RSA.Create(4096))
             {
-                System.Security.Cryptography.X509Certificates.CertificateRequest certificateRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(attributes,rsa, new HashAlgorithmName(algorithm), RSASignaturePadding.Pkcs1);
-                certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType==CertificateType.END), false, 0, true));
+                System.Security.Cryptography.X509Certificates.CertificateRequest certificateRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(attributes, rsa, new HashAlgorithmName(algorithm), RSASignaturePadding.Pkcs1);
+                certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(!(cType == CertificateType.END), false, 0, true));
                 certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(flags, false));
                 certificateRequest.CertificateExtensions.Add(
                 new X509Extension(
@@ -69,10 +74,9 @@ namespace CertificatesWebApp.Users.Services
                         new byte[] { 48, 11, 130, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116 }
                     ),
                     false
-                )
-            );
+                ));
+                _logger.LogError("User {@Id} created root certificate request based on request {@Request}", request.OwnerId, request.Id);
 
-                //X509Certificate2 tempCert = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                 X509Certificate2 caCertificate;
 
                 validateCertificate(request.ParentSerialNumber, user);
@@ -81,7 +85,8 @@ namespace CertificatesWebApp.Users.Services
                 {
                     caCertificate = certificateRequest.CreateSelfSigned(DateTimeOffset.Now.Date, expDate);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true,Guid.Empty, user.Id, algorithm,attributes,null));
+                    Certificate saved=SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true,Guid.Empty, user.Id, algorithm,attributes,null));
+                    _logger.LogError("User {@Id} saved root certificate {@Certificate}", request.OwnerId, saved.SerialNumber);
                 }
                 else
                 {
@@ -96,7 +101,9 @@ namespace CertificatesWebApp.Users.Services
                     RandomNumberGenerator.Fill(serialNumber);
                     caCertificate = certificateRequest.Create(issuerCertificate, DateTimeOffset.Now.Date, expDate, serialNumber);
                     SaveCertificateToFileSystem(caCertificate, rsa);
-                    SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm, attributes,request.ParentSerialNumber));
+                    Certificate saved = SaveCertificate(new Certificate(caCertificate.SerialNumber, DateTime.Now.Date, expDate, cType, true, issuer.Id, user.Id, algorithm, attributes,request.ParentSerialNumber));
+
+                    _logger.LogError("User {@Id} saved non root certificate {@Certificate}", request.OwnerId, saved.SerialNumber);
                 }
                     
                X509Certificate2UI.DisplayCertificate(caCertificate);
@@ -114,7 +121,10 @@ namespace CertificatesWebApp.Users.Services
             Data.Models.CertificateRequest request = _certificateRequestRepository.Read(certificateRequestId);
             request.State = CertificateRequestState.REJECTED;
             request.RejectionReason = rejectionReason;
+
+            _logger.LogError("User {@Id} declined certificate request {@Request}", request.OwnerId, request.Id);
             _certificateRequestRepository.Update(request);
+
         }
 
         public Certificate SaveCertificate(Certificate certificate)
@@ -167,6 +177,7 @@ namespace CertificatesWebApp.Users.Services
             dto.Owner = owner.Name + " " + owner.Surname;
             if (issuer != null)
                 dto.Issuer = issuer.Name + " " + issuer.Surname;
+
             return dto;
         }
         public void CheckOwnership(string serialNumber, string userId)
@@ -186,6 +197,7 @@ namespace CertificatesWebApp.Users.Services
             {
                 flag = flag | (X509KeyUsageFlags)Enum.Parse(typeof(X509KeyUsageFlags), Enum.GetName(typeof(X509KeyUsageFlags), Convert.ToInt32(Math.Pow(2, Convert.ToInt32(exponent)))));
             }
+
             return flag;
 
         }
@@ -195,6 +207,7 @@ namespace CertificatesWebApp.Users.Services
             string common_name = string.Concat("CN=","localhost");
             string email = string.Concat("E=", user.Email);
             string telephone = string.Concat("T=", user.Telephone).Replace("+","00");
+
             return string.Concat(common_name, ";", email, ";", telephone, ";", attributes);
 
         }
@@ -229,6 +242,7 @@ namespace CertificatesWebApp.Users.Services
         public void WithdrawCertificate(string serialNumber)
         {
             Certificate certificate = GetBySerialNumber(serialNumber);
+
             List<Certificate> certificatesForProcessing = new List<Certificate>();
             certificatesForProcessing.Add(certificate);
             certificatesForProcessing.AddRange(GetByParentSerialNumber(serialNumber));
@@ -237,6 +251,7 @@ namespace CertificatesWebApp.Users.Services
                 List<Certificate> newCertificatesForProcessing = new List<Certificate>();
                 foreach (Certificate item in certificatesForProcessing)
                 {
+                    _logger.LogError("Certificate {@Id} has been revoked", item.Id);
                     item.IsValid = false;
                     UpdateCertificate(item);
                     newCertificatesForProcessing.AddRange(GetByParentSerialNumber(item.SerialNumber));
