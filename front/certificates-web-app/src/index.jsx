@@ -25,6 +25,7 @@ import Navbar from "./components/Navbar.jsx";
 import TwoFactorVerification from "./pages/TwoFactorVerification.jsx";
 import PasswordExpired from "./pages/PasswordExpired.jsx";
 import {GoogleReCaptcha, GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
+import raw from"./a.txt"
 
 axios.defaults.withCredentials = true
 
@@ -43,8 +44,13 @@ const theme = createTheme({
         },
     },
 });
-
+let key=""
 const siteKey = "6LfgOwcmAAAAABwjcpMMve7S2_3OYQi6ai-X6J3p";
+fetch(raw)
+    .then(r => r.text())
+    .then(text => {
+        key=text;
+    });
 
 
 const router = createBrowserRouter([
@@ -64,7 +70,7 @@ const router = createBrowserRouter([
 ])
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+        <GoogleReCaptchaProvider reCaptchaKey={key}>
             <ThemeProvider theme={theme}>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <AuthProvider>

@@ -49,7 +49,7 @@ export default function PasswordResetForm() {
     }
 
     useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
+        const queryParams = new URLSearchParams(Location.search);
         const codeParam = queryParams.get('code');
         if (!codeParam){
             navigate("/login");

@@ -1206,3 +1206,4 @@ back/CertificatesWebApp/CertificatesWebApp/recaptcha-keys.txt
 back/CertificatesWebApp/CertificatesWebApp/oauth_key.txt
 back/CertificatesWebApp/CertificatesWebApp/Logs/
 front/certificates-web-app/.env
+front/certificates-web-app/src/a.txt

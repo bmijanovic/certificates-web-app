@@ -249,7 +249,7 @@ namespace CertificatesWebApp.Users.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
             }
 
-            return Redirect("http://localhost:5173/certificates");
+            return Redirect("https://localhost:3000/certificates");
         }
 
         private string GenerateRandomPassword()
