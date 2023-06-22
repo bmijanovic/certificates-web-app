@@ -43,6 +43,14 @@ e2e/*.map
 *.userosscache
 *.sln.docstates
 
+#certificates
+*.crt
+*.cert
+*.pfx
+*.key
+*.keystore
+*.jks
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -1179,4 +1187,23 @@ fabric.properties
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
+### Database ###
+*.accdb
+*.db
+*.dbf
+*.mdb
+*.pdb
+*.sqlite3
+*.db-shm
+*.db-wal
+Migrations/
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,aspnetcore,react,reactnative,rider,csharp,dotnetcore,webstorm,visualstudiocode,angular
+back/CertificatesWebApp/CertificatesWebApp/sendgrid_api_key.txt
+back/CertificatesWebApp/CertificatesWebApp/twilio_credentials.txt
+back/CertificatesWebApp/CertificatesWebApp/recaptcha_key.txt
+back/CertificatesWebApp/CertificatesWebApp/recaptcha-keys.txt
+back/CertificatesWebApp/CertificatesWebApp/oauth_key.txt
+back/CertificatesWebApp/CertificatesWebApp/Logs/
+front/certificates-web-app/.env
+front/certificates-web-app/src/a.txt
